@@ -1,0 +1,15 @@
+.DS_Store
+Thumbs.db
+*.log
+.firebase/
+js/.trash-*
+
+# Local config files with your own values (API keys, deployed Cloud Function URLs) — never
+# committed, so this repo can stay public without leaking anything you fill in later (Stripe
+# keys included, once that config file exists). Each has a *.example.js counterpart that IS
+# tracked, with blank placeholders — copy the example to the real filename and fill it in.
+# firebase-config.js is the one deliberate exception: its values are safe to expose by design
+# (see the comment in that file — access is enforced by Firestore Security Rules, not by hiding
+# this config), so it's un-ignored below and stays committed with real values.
+js/*-config.js
+!js/firebase-config.js

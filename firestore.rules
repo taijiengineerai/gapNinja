@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // True only for uids that have a document in the top-level admins/ collection. This
+    // collection is deliberately OUTSIDE users/{uid} — if it were a field inside a user's own
+    // profile doc, that user could just write isAdmin: true to their own document and grant
+    // themselves admin rights. Keeping it as a separate collection that only existing admins can
+    // write to closes that hole.
+    function isAdmin() {
+      return request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Every user's own data. Owner has full read/write, as before. Admins get READ ONLY access
+    // across every user's subtree (resumes, applications, tasks, companies, profile, summaries,
+    // and anything added later) — this is what powers the Admin Dashboard. Admins cannot write
+    // or delete another user's data through this rule.
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAdmin();
+    }
+
+    // Collection-group rules for the Admin Dashboard. Firestore requires a SEPARATE rule written
+    // with {path=**} to permit collectionGroup() queries (which scan a named subcollection across
+    // every user at once) — the per-user rule above only covers direct/single-user reads of these
+    // same documents, not the cross-user collectionGroup query the dashboard uses to list every
+    // user's profile, queued links, and saved comparisons in one shot.
+    match /{path=**}/meta/{docId} {
+      allow read: if isAdmin();
+    }
+    match /{path=**}/tasks/{docId} {
+      allow read: if isAdmin();
+    }
+    match /{path=**}/applications/{docId} {
+      allow read: if isAdmin();
+    }
+
+    // Support tickets: unlike the other collection-group rules above (read-only for admins),
+    // admins need WRITE access here too, to save an in-app reply back onto another user's
+    // ticket document. This {path=**} rule covers both the collection-group query the admin
+    // Support Tickets list uses AND normal single-document reads/writes to a specific ticket.
+    match /{path=**}/supportTickets/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Shared counter that hands out sequential support ticket numbers (#1001, #1002, ...). Any
+    // signed-in user needs read+write here, since regular users (not just admins) submit
+    // tickets and each submission bumps this counter via a transaction — see js/firebase.js's
+    // allocateTicketNumber(). Scoped to this one specific document, not a general-purpose
+    // writable collection, so it can't be used to store or overwrite anything else.
+    match /counters/supportTickets {
+      allow read, write: if request.auth != null;
+    }
+
+    // The admin allowlist itself. Anyone signed in can check their OWN status (so the app can
+    // decide whether to show the Admin nav item); only admins can list the full roster or
+    // grant/revoke another uid. Note: the very first admin can't be created this way, since it
+    // requires an existing admin — see README.md "Admin Dashboard" for the one-time bootstrap
+    // step via the Firebase Console.
+    match /admins/{uid} {
+      allow get: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+  }
+}

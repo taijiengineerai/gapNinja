@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>gapNinja — slice through the skills gap</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20" />
+</head>
+<body>
+
+<!-- LANDING / SIGNED-OUT VIEW -->
+<div id="landing-page" class="landing">
+  <div class="landing-inner">
+    <nav class="landing-nav">
+      <div class="brand" style="padding:0;">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 1L20 12L31 16L20 20L16 31L12 20L1 16L12 12L16 1Z" fill="#39ff88"/>
+          <circle cx="16" cy="16" r="4.5" fill="#0d1117"/>
+        </svg>
+        <span class="brand-name"><span class="gap">gap</span><span class="ninja">Ninja</span></span>
+      </div>
+    </nav>
+
+    <section class="landing-hero">
+      <div class="landing-badge">100% free · no credit card</div>
+      <h1>Stop hunting.<br/>Start landing.</h1>
+      <p class="landing-sub">
+        gapNinja closes the gap between your resume and the job you actually want. Paste any job description and it scores how well you fit — even when you're not a perfect match — shows exactly which skills are missing, and drafts a tailored cover letter and follow‑up email for you. Spend your time landing interviews, not firing off applications that bounce off a resume filter.
+      </p>
+      <p class="landing-sub" style="font-size:14px; color:var(--neon-dim); max-width:520px; margin-top:-18px;">No public feed, no spam — gapNinja only ever spreads the old-fashioned way: one friend, one email, one invite at a time.</p>
+
+      <div id="google-signin-container">
+        <button class="google-btn" id="google-signin-btn">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.98v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.41 5.41 0 0 1 3.67 9c0-.59.1-1.17.28-1.7V4.97H.98A9 9 0 0 0 0 9c0 1.45.35 2.83.98 4.03l2.97-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .98 4.97l2.97 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+          <span>Continue with Google</span>
+        </button>
+        <div class="hint" id="google-signin-status" style="text-align:center; margin-top:10px;"></div>
+      </div>
+
+      <div class="landing-divider"><span>or use email</span></div>
+
+      <div id="email-auth-container">
+        <div class="email-auth-tabs">
+          <button type="button" class="email-auth-tab active" id="email-tab-signin" data-mode="signin">Log in</button>
+          <button type="button" class="email-auth-tab" id="email-tab-signup" data-mode="signup">Sign up</button>
+        </div>
+        <form id="email-auth-form">
+          <input type="email" id="email-auth-email" placeholder="Email" required autocomplete="email" />
+          <input type="password" id="email-auth-password" placeholder="Password (min 6 characters)" required autocomplete="current-password" minlength="6" />
+          <button type="submit" class="btn btn-primary" id="email-auth-submit" style="width:100%;">Log in</button>
+        </form>
+        <div class="hint" style="text-align:center; margin-top:10px;">
+          <a href="#" id="forgot-password-link">Forgot password?</a>
+        </div>
+        <div class="hint" id="email-auth-status" style="text-align:center; margin-top:8px;"></div>
+      </div>
+
+      <div id="forgot-password-container" style="display:none;">
+        <div style="font-size:13px; color:var(--text-dim); text-align:center; margin-bottom:10px;">Enter your account email and we'll send you a link to reset your password.</div>
+        <input type="email" id="forgot-password-email" placeholder="Email" />
+        <button type="button" class="btn btn-secondary" id="forgot-password-submit" style="width:100%; margin-top:10px;">Send reset link</button>
+        <div class="hint" style="text-align:center; margin-top:10px;">
+          <a href="#" id="back-to-signin-link">Back to sign in</a>
+        </div>
+        <div class="hint" id="forgot-password-status" style="text-align:center; margin-top:8px;"></div>
+      </div>
+
+      <div class="hint" style="margin-top:6px;">Free forever. Your resumes and application history are private to your account.</div>
+    </section>
+
+    <section class="landing-features">
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">🎯</div>
+        <div class="landing-feature-title">Skill-gap scoring</div>
+        <div class="landing-feature-desc">See your real match score against any job — plus exactly which skills are keeping you from a perfect fit.</div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">✍️</div>
+        <div class="landing-feature-title">Cover letters, drafted</div>
+        <div class="landing-feature-desc">A tailored cover letter that leads with your strengths and frames any gaps honestly — ready to edit and send.</div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">📬</div>
+        <div class="landing-feature-title">Follow-up templates</div>
+        <div class="landing-feature-desc">Never go silent after applying. A ready-made follow-up email for every role you track.</div>
+      </div>
+      <div class="landing-feature-card">
+        <div class="landing-feature-icon">📊</div>
+        <div class="landing-feature-title">One dashboard</div>
+        <div class="landing-feature-desc">Every company, resume version, and application status in one place — know exactly what you've applied to.</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="app-shell" style="display:none;">
+  <div class="mobile-topbar">
+    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+    <div class="brand" style="padding:0;">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 1L20 12L31 16L20 20L16 31L12 20L1 16L12 12L16 1Z" fill="#39ff88"/>
+        <circle cx="16" cy="16" r="4.5" fill="#0d1117"/>
+      </svg>
+      <span class="brand-name" style="font-size:17px;"><span class="gap">gap</span><span class="ninja">Ninja</span></span>
+    </div>
+    <div style="width:38px;"></div>
+  </div>
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 1L20 12L31 16L20 20L16 31L12 20L1 16L12 12L16 1Z" fill="#39ff88"/>
+        <circle cx="16" cy="16" r="4.5" fill="#0d1117"/>
+      </svg>
+      <span class="brand-name"><span class="gap">gap</span><span class="ninja">Ninja</span></span>
+      <button class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="brand-tagline">Slice through the skills gap.</div>
+
+    <div class="nav-item active" data-view="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" data-view="compare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 4h6l1 3h4v13H4V7h4l1-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      Compare &amp; Analyze
+    </div>
+    <div class="nav-item" data-view="tasks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Job Queue
+    </div>
+    <div class="nav-item" data-view="resumes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+      Resumes
+    </div>
+    <div class="nav-item" data-view="companies">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/></svg>
+      Companies
+    </div>
+    <div class="nav-item" data-view="support">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.9 4.9l4.24 4.24M14.86 14.86l4.24 4.24M14.86 9.14l4.24-4.24M4.9 19.1l4.24-4.24"/></svg>
+      Support
+    </div>
+    <div class="nav-item" id="nav-admin" data-view="admin" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>
+      Admin
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip" id="user-chip"></div>
+      <div class="nav-item" id="nav-invite">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z" opacity="0"/><path d="M22 6L12 13 2 6"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+        Invite a friend
+      </div>
+      <div class="nav-item" id="nav-profile" data-view="profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        My Profile
+      </div>
+      <div class="nav-item" id="sign-out-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Sign out
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD VIEW -->
+    <section class="view active" id="view-dashboard">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Dashboard</h1>
+          <p class="view-subtitle">Every job you've compared or applied to, in one place.</p>
+        </div>
+        <button class="btn btn-primary" data-nav="compare">+ New Comparison</button>
+      </div>
+      <div id="dashboard-stats" class="grid-4"></div>
+      <div class="card" style="margin-top:16px;">
+        <div class="flex-between" style="margin-bottom:10px;">
+          <div class="card-title" style="margin:0;">Applications</div>
+          <div class="flex gap-8">
+            <select id="dashboard-status-filter" style="width:auto;">
+              <option value="">All statuses</option>
+              <option value="not_applied">Not applied</option>
+              <option value="ready">Ready to apply</option>
+              <option value="applied">Applied</option>
+              <option value="interviewing">Interviewing</option>
+              <option value="offer">Offer</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+        </div>
+        <div id="dashboard-table-wrap"></div>
+      </div>
+    </section>
+
+    <!-- COMPARE VIEW -->
+    <section class="view" id="view-compare">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Compare &amp; Analyze</h1>
+          <p class="view-subtitle">Pick a resume, paste a job description, and gapNinja will score your fit, show the skill gap, and draft your cover letter.</p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">1. Job details</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Company name</label>
+              <input type="text" id="compare-company" placeholder="Acme Corp" />
+            </div>
+            <div class="field">
+              <label>Role title</label>
+              <input type="text" id="compare-role" placeholder="Senior Product Designer" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Job posting link (optional)</label>
+            <input type="url" id="compare-url" placeholder="https://company.com/careers/job/123" />
+            <div class="hint">We'll automatically try to pull the description in as soon as you leave this field. Most job sites block this from a browser — if it doesn't work, just paste the text below.</div>
+          </div>
+          <div class="field">
+            <label>Job description text</label>
+            <textarea id="compare-jd" placeholder="Paste the full job description here… (or add a link above and we'll try to fill this in for you)" style="min-height:160px;"></textarea>
+            <div class="hint"><button class="btn btn-secondary btn-sm" id="compare-fetch-btn" type="button">Retry auto-fetch from link</button></div>
+          </div>
+          <div class="field">
+            <label>Compensation range (optional)</label>
+            <input type="text" id="compare-compensation" placeholder="$90,000 – $110,000" />
+            <div class="hint" id="compare-compensation-hint">Auto-filled if the job description lists one — otherwise add it yourself.</div>
+          </div>
+
+          <div class="card-title" style="margin-top:18px;">2. Resume to use</div>
+          <div class="field">
+            <label>Select a saved resume</label>
+            <select id="compare-resume-select"></select>
+            <div class="hint">No resume yet? <span class="nav-link" data-nav="resumes" style="color:var(--neon); cursor:pointer;">Upload one</span>.</div>
+          </div>
+
+          <button class="btn btn-primary" id="compare-analyze-btn" style="margin-top:8px; width:100%; justify-content:center;">Analyze Fit</button>
+        </div>
+
+        <div class="card" id="compare-results-panel">
+          <div class="card-title">Results</div>
+          <div id="compare-results" class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 4h6l1 3h4v13H4V7h4l1-3z"/><path d="M9 12l2 2 4-4"/></svg>
+            <div>Fill in the job details and hit Analyze Fit to see your match score, skill gap, and a drafted cover letter.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TASKS / JOB QUEUE VIEW -->
+    <section class="view" id="view-tasks">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Job Queue</h1>
+          <p class="view-subtitle">Paste job links as you find them. Come back and analyze each one when you're ready to apply.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Add a job to the queue</div>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>Job link</label>
+            <input type="url" id="task-link" placeholder="https://company.com/careers/job/123" />
+          </div>
+          <div class="field">
+            <label>Quick note (optional)</label>
+            <input type="text" id="task-note" placeholder="Referred by Sam" />
+          </div>
+        </div>
+        <button class="btn btn-primary" id="task-add-btn">Add to Queue</button>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Queue</div>
+        <div id="task-list-wrap"></div>
+      </div>
+    </section>
+
+    <!-- RESUMES VIEW -->
+    <section class="view" id="view-resumes">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Resumes</h1>
+          <p class="view-subtitle">Upload every version of your resume. gapNinja reads the PDF right here in your browser — nothing is uploaded anywhere except your own private account.</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Upload a resume (PDF)</div>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>PDF file</label>
+            <input type="file" id="resume-file" accept="application/pdf" />
+          </div>
+          <div class="field">
+            <label>Version label</label>
+            <input type="text" id="resume-label" placeholder="e.g. v2 — Backend focus" />
+          </div>
+        </div>
+        <button class="btn btn-primary" id="resume-upload-btn">Upload &amp; Parse</button>
+        <div class="hint" id="resume-upload-status"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Saved resumes</div>
+        <div id="resume-list-wrap"></div>
+      </div>
+    </section>
+
+    <!-- COMPANIES VIEW -->
+    <section class="view" id="view-companies">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Companies</h1>
+          <p class="view-subtitle">Notes and info on every company you're tracking.</p>
+        </div>
+        <button class="btn btn-primary" id="company-add-btn">+ Add Company</button>
+      </div>
+      <div class="flex-between" style="margin-bottom:14px; gap:12px; flex-wrap:wrap;">
+        <input type="text" id="company-search-input" placeholder="Search companies…" style="max-width:320px; flex:1;" />
+        <select id="company-period-filter" style="width:auto;">
+          <option value="all">All time</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
+      <div id="company-list-wrap" class="company-list"></div>
+    </section>
+
+    <!-- SUPPORT VIEW -->
+    <section class="view" id="view-support">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Support</h1>
+          <p class="view-subtitle">Questions, bugs, or feature ideas — send them here and we'll follow up.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Submit a request</div>
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" id="support-name" placeholder="Your name" /></div>
+          <div class="field"><label>Subject</label><input type="text" id="support-subject" placeholder="Short summary" /></div>
+        </div>
+        <div class="field">
+          <label>Comments / suggestion</label>
+          <textarea id="support-message" placeholder="Describe the issue or idea in as much detail as you can…" style="min-height:120px;"></textarea>
+        </div>
+        <div class="field">
+          <label>Screenshot (optional)</label>
+          <input type="file" id="support-screenshot" accept="image/*" />
+          <div class="hint">Resized in your browser before it's saved, so even a large screenshot stays small.</div>
+          <div id="support-screenshot-preview" style="display:none; margin-top:8px;">
+            <img id="support-screenshot-preview-img" alt="Screenshot preview" style="max-width:220px; max-height:160px; border-radius:8px; border:1px solid var(--border); display:block;" />
+            <button class="btn btn-secondary btn-sm" id="support-screenshot-remove-btn" type="button" style="margin-top:8px;">Remove screenshot</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="support-submit-btn" type="button">Submit</button>
+        <div class="hint" id="support-submit-status" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Your submitted tickets</div>
+        <div id="support-ticket-list-wrap"><div class="empty-state">Loading…</div></div>
+      </div>
+    </section>
+
+    <!-- ADMIN VIEW -->
+    <section class="view" id="view-admin">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Admin Dashboard</h1>
+          <p class="view-subtitle">Visible only to admins — a read-only view across every user's job links and company searches.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Users &amp; access</div>
+        <p class="hint" style="margin-top:-6px;">Grant or remove admin rights. Only an existing admin can promote someone else — there's no self-service way to become one.</p>
+        <div id="admin-users-wrap"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Activity across all users</div>
+        <p class="hint" style="margin-top:-6px;">Every job link queued and every company search saved, across all accounts.</p>
+
+        <div class="field">
+          <label>Columns to include in export</label>
+          <div class="flex gap-8" style="flex-wrap:wrap; margin-top:4px;">
+            <label class="hint" style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="admin-col-name" checked /> Name</label>
+            <label class="hint" style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="admin-col-email" checked /> Email</label>
+            <label class="hint" style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="admin-col-company" checked /> Company</label>
+            <label class="hint" style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="admin-col-link" checked /> Link</label>
+            <label class="hint" style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" id="admin-col-date" checked /> Date</label>
+          </div>
+        </div>
+
+        <div class="field" style="max-width:340px;">
+          <label>Recipient email (for "Send report by email")</label>
+          <input type="email" id="admin-report-recipient" placeholder="you@company.com" />
+        </div>
+
+        <div class="flex gap-8" style="flex-wrap:wrap; margin-top:4px;">
+          <button class="btn btn-secondary btn-sm" id="admin-export-csv-btn" type="button">Download CSV</button>
+          <button class="btn btn-secondary btn-sm" id="admin-export-mailto-btn" type="button">Email report (opens your email app)</button>
+          <button class="btn btn-primary btn-sm" id="admin-export-send-btn" type="button" style="display:none;">Send report by email</button>
+        </div>
+        <div class="hint" id="admin-export-status" style="margin-top:6px;"></div>
+
+        <div class="divider"></div>
+        <div id="admin-activity-wrap"><div class="empty-state">Loading…</div></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="flex-between" style="margin-bottom:10px; gap:10px; flex-wrap:wrap;">
+          <div class="card-title" style="margin:0;">Support Tickets</div>
+          <div class="flex gap-8" style="flex-wrap:wrap;">
+            <input type="text" id="admin-support-search" placeholder="Search ticket #, email, or subject…" style="width:auto; min-width:220px;" />
+            <select id="admin-support-status-filter" style="width:auto;">
+              <option value="">All statuses</option>
+              <option value="open">Open</option>
+              <option value="replied">Replied</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:-6px;">Every request submitted from the Support page, across all accounts.</p>
+        <div id="admin-support-wrap"><div class="empty-state">Loading…</div></div>
+      </div>
+    </section>
+
+    <!-- PROFILE VIEW -->
+    <section class="view" id="view-profile">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">My Profile</h1>
+          <p class="view-subtitle">Everything gapNinja knows about you — powers your cover letters, and lets you search the internet for jobs that actually fit.</p>
+        </div>
+        <button class="btn btn-primary" id="profile-save-btn">Save Profile</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Basic info</div>
+        <div class="field-row">
+          <div class="field"><label>Full name</label><input type="text" id="profile-name" /></div>
+          <div class="field"><label>Email</label><input type="email" id="profile-email" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Phone</label><input type="tel" id="profile-phone" /></div>
+          <div class="field"><label>LinkedIn URL</label><input type="url" id="profile-linkedin" /></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Resume to scan</div>
+        <p class="hint" style="margin-top:-6px;">Pick a saved resume and pull its skills straight into the list below instead of typing them all by hand.</p>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>Saved resume</label>
+            <select id="profile-resume-select"></select>
+          </div>
+          <div class="field" style="align-self:flex-end;">
+            <button class="btn btn-secondary" id="profile-scan-resume-btn" type="button">Scan skills from resume</button>
+          </div>
+        </div>
+        <div class="hint" id="profile-scan-status"></div>
+        <div class="chip-row" id="profile-scan-suggestions" style="margin-top:6px;"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Skills &amp; knowledge</div>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <input type="text" id="profile-skill-input" placeholder="Type a skill and press Enter — e.g. Python, Figma, Project Management" />
+          </div>
+          <div class="field">
+            <button class="btn btn-secondary" id="profile-skill-add-btn" type="button">Add skill</button>
+          </div>
+        </div>
+        <div class="chip-row" id="profile-skills-chips"></div>
+        <div class="field" style="margin-top:10px;">
+          <label>Anything else worth knowing (tools, certifications, domains)</label>
+          <textarea id="profile-knowledge" placeholder="e.g. AWS Certified Solutions Architect, fluent in Spanish, HIPAA-regulated healthcare data…" style="min-height:70px;"></textarea>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Scan a job description for skill gaps</div>
+        <p class="hint" style="margin-top:-6px;">Paste any job description to see which of its skills you already have and which ones you're missing — add the gaps to your skill list with one click, no need to run a full comparison.</p>
+        <div class="field">
+          <textarea id="profile-jd-scan-text" placeholder="Paste a job description here…" style="min-height:140px;"></textarea>
+        </div>
+        <button class="btn btn-secondary" id="profile-jd-scan-btn" type="button">Scan job description</button>
+        <div class="hint" id="profile-jd-scan-status" style="margin-top:8px;"></div>
+        <div id="profile-jd-scan-results" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="flex-between" style="margin-bottom:2px;">
+          <div class="card-title" style="margin:0;">Experience</div>
+          <button class="btn btn-secondary btn-sm" id="profile-exp-add-btn" type="button">+ Add experience</button>
+        </div>
+        <div id="profile-experience-list"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">About you</div>
+        <div class="field">
+          <label>Tell us about yourself</label>
+          <textarea id="profile-bio" placeholder="Who you are, what drives you, the kind of work you want to be doing next…" style="min-height:90px;"></textarea>
+        </div>
+        <div class="field">
+          <label>Hobbies &amp; interests</label>
+          <input type="text" id="profile-hobbies" placeholder="Rock climbing, woodworking, community theater…" />
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="flex-between" style="margin-bottom:2px;">
+          <div class="card-title" style="margin:0;">Skills Summary</div>
+          <button class="btn btn-secondary btn-sm" id="profile-summary-generate-btn" type="button">✨ Generate summary</button>
+        </div>
+        <p class="hint" style="margin-top:4px;">A cover-letter-style summary of your skills, knowledge, and experience — not tied to any specific job. Generate it, edit it, and save versions you like for later.</p>
+
+        <div id="profile-summary-editor" style="display:none;">
+          <textarea id="profile-summary-text" style="min-height:260px; margin-top:8px;"></textarea>
+          <div class="copy-row">
+            <button class="btn btn-secondary btn-sm" id="profile-summary-copy-btn">Copy</button>
+            <button class="btn btn-secondary btn-sm" id="profile-summary-download-txt-btn">Download .txt</button>
+            <button class="btn btn-secondary btn-sm" id="profile-summary-download-pdf-btn">Download PDF</button>
+            <button class="btn btn-primary btn-sm" id="profile-summary-save-btn">Save to history</button>
+          </div>
+        </div>
+        <div class="hint" id="profile-summary-status" style="margin-top:8px;"></div>
+
+        <div class="divider"></div>
+        <div class="card-title" style="font-size:13px;">Saved summaries</div>
+        <div id="profile-summary-history"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="card-title">Job search</div>
+        <p class="hint" style="margin-top:-6px;">gapNinja searches live listings (via Adzuna) using your skills and preferences below — nothing is applied to automatically, you review and choose.</p>
+        <div class="field-row">
+          <div class="field" style="flex:2;">
+            <label>Keywords</label>
+            <input type="text" id="profile-job-keywords" placeholder="e.g. product designer, react developer" />
+            <div class="hint">Pre-filled from your top skills — edit freely.</div>
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" id="profile-job-location" placeholder="e.g. Austin, or Remote" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Country</label>
+            <select id="profile-job-country">
+              <option value="us">United States</option>
+              <option value="gb">United Kingdom</option>
+              <option value="ca">Canada</option>
+              <option value="au">Australia</option>
+              <option value="de">Germany</option>
+              <option value="fr">France</option>
+              <option value="in">India</option>
+              <option value="nl">Netherlands</option>
+              <option value="sg">Singapore</option>
+              <option value="nz">New Zealand</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Posted within (days)</label>
+            <input type="number" id="profile-job-days" min="1" max="90" value="30" />
+            <div class="hint">1–90 days</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="profile-fetch-jobs-btn" type="button" style="width:100%; justify-content:center;">🔎 Fetch matching jobs</button>
+        <div class="hint" id="profile-jobs-status" style="margin-top:8px;"></div>
+        <div id="profile-jobs-results" style="margin-top:14px;"></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- (Profile is now a full page — see #view-profile below — not a modal.) -->
+
+<!-- Invite modal -->
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal" style="width:420px; max-width:95vw;">
+    <div class="card-title">Invite a friend</div>
+    <p class="hint" style="margin-top:-6px;">gapNinja only spreads person-to-person by email — no public links, no social feed. Invite someone you think would find it useful.</p>
+    <div class="field">
+      <label>Friend's email</label>
+      <input type="email" id="invite-email" placeholder="friend@email.com" />
+    </div>
+    <div class="field">
+      <label>Add a personal note (optional)</label>
+      <textarea id="invite-note" placeholder="Hey — this helped me get more callbacks, thought you'd want it too." style="min-height:70px;"></textarea>
+    </div>
+    <div class="flex gap-8" style="justify-content:flex-end; margin-top:6px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="invite-cancel-btn">Cancel</button>
+      <button class="btn btn-secondary" id="invite-mailto-btn" type="button">Open in my email app</button>
+      <button class="btn btn-primary" id="invite-auto-btn" type="button" style="display:none;">Send invite</button>
+    </div>
+    <div class="hint" id="invite-status" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- Support ticket modal (admin) -->
+<div class="modal-overlay" id="support-ticket-modal">
+  <div class="modal" style="width:560px; max-width:95vw; max-height:85vh; overflow-y:auto;">
+    <div class="flex-between">
+      <div class="card-title" id="support-ticket-modal-subject" style="margin:0;">Ticket</div>
+      <button class="icon-btn" id="support-ticket-modal-close-btn">✕</button>
+    </div>
+    <input type="hidden" id="support-ticket-modal-id" />
+    <input type="hidden" id="support-ticket-modal-uid" />
+    <div class="hint" id="support-ticket-modal-meta" style="margin:2px 0 14px 0;"></div>
+
+    <div style="font-size:13px; white-space:pre-wrap; margin-bottom:10px;" id="support-ticket-modal-message"></div>
+    <div id="support-ticket-modal-screenshot-wrap" style="display:none; margin-bottom:14px;">
+      <a id="support-ticket-modal-screenshot-link" target="_blank" rel="noopener">
+        <img id="support-ticket-modal-screenshot-img" alt="Attached screenshot" style="max-width:100%; max-height:320px; border-radius:8px; border:1px solid var(--border);" />
+      </a>
+    </div>
+
+    <div id="support-ticket-modal-existing-reply" style="display:none; margin-bottom:14px; padding:10px 12px; background:rgba(255,255,255,0.03); border-left:2px solid var(--neon); border-radius:6px;">
+      <div class="hint" style="margin-top:0; margin-bottom:4px;">Previous reply</div>
+      <div style="font-size:13px; white-space:pre-wrap;" id="support-ticket-modal-existing-reply-text"></div>
+    </div>
+
+    <div class="field">
+      <label>Reply</label>
+      <textarea id="support-ticket-modal-reply-text" placeholder="Write a reply — saved here and shown to them on their Support page." style="min-height:100px;"></textarea>
+    </div>
+    <div class="hint" id="support-ticket-modal-status" style="margin-top:6px;"></div>
+
+    <div class="flex gap-8" style="justify-content:flex-end; margin-top:12px; flex-wrap:wrap;">
+      <button class="btn btn-secondary" id="support-ticket-modal-email-btn" type="button">Email (opens your email app)</button>
+      <button class="btn btn-secondary" id="support-ticket-modal-resolve-btn" type="button">Mark resolved</button>
+      <button class="btn btn-primary" id="support-ticket-modal-reply-btn" type="button">Save reply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Company modal -->
+<div class="modal-overlay" id="company-modal">
+  <div class="modal" style="width:460px; max-width:95vw;">
+    <div class="card-title" id="company-modal-title">Add company</div>
+    <input type="hidden" id="company-modal-id" />
+    <div class="field"><label>Company name</label><input type="text" id="company-modal-name" placeholder="Acme Corp" /></div>
+    <div class="field">
+      <label>Website</label>
+      <input type="url" id="company-modal-website" placeholder="https://acme.com" />
+      <div class="hint">
+        <button class="btn btn-secondary btn-sm" id="company-modal-lookup-btn" type="button">Auto-fill contact info from website</button>
+      </div>
+      <div class="hint" id="company-modal-lookup-status"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Contact email</label><input type="text" id="company-modal-email" placeholder="careers@acme.com" /></div>
+      <div class="field"><label>Contact phone</label><input type="text" id="company-modal-phone" placeholder="(555) 123-4567" /></div>
+    </div>
+    <div class="field"><label>LinkedIn</label><input type="text" id="company-modal-linkedin" placeholder="linkedin.com/company/acme" /></div>
+    <div class="field"><label>Notes</label><textarea id="company-modal-notes" placeholder="Culture notes, contacts, salary info…"></textarea></div>
+    <div class="flex gap-8" style="justify-content:flex-end; margin-top:6px;">
+      <button class="btn btn-secondary" id="company-modal-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="company-modal-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Application detail modal -->
+<div class="modal-overlay" id="application-modal">
+  <div class="modal" style="width:640px; max-width:95vw; max-height:85vh; overflow-y:auto;">
+    <div class="flex-between">
+      <div class="card-title" id="application-modal-title" style="margin:0;">Application</div>
+      <button class="icon-btn" id="application-modal-close-btn">✕</button>
+    </div>
+    <input type="hidden" id="application-modal-id" />
+    <div class="hint" id="application-modal-meta" style="margin:2px 0 14px 0;"></div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Status</label>
+        <select id="application-modal-status">
+          <option value="not_applied">Not applied</option>
+          <option value="ready">Ready to apply</option>
+          <option value="applied">Applied</option>
+          <option value="interviewing">Interviewing</option>
+          <option value="offer">Offer</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Applied date</label>
+        <input type="date" id="application-modal-applied-date" />
+      </div>
+    </div>
+
+    <div class="field"><label>Compensation range</label><input type="text" id="application-modal-compensation" placeholder="$90,000 – $110,000" /></div>
+    <div class="field"><label>Notes</label><textarea id="application-modal-notes" placeholder="Interview notes, contacts, salary discussion…"></textarea></div>
+
+    <div class="pill-tab-row">
+      <div class="pill-tab active" data-amtab="jd">Job Description</div>
+      <div class="pill-tab" data-amtab="letter">Cover Letter</div>
+      <div class="pill-tab" data-amtab="email">Follow-up Email</div>
+      <div class="pill-tab" data-amtab="skills">Skills</div>
+    </div>
+    <div id="amtab-jd">
+      <div class="hint" id="application-modal-jd-url" style="margin-bottom:6px;"></div>
+      <textarea id="application-modal-jd" readonly style="min-height:220px; color:var(--text-dim);"></textarea>
+      <div class="hint" style="margin-top:6px;">This is exactly what was analyzed when you saved this comparison — read-only, so your history stays accurate.</div>
+    </div>
+    <div id="amtab-letter" style="display:none;">
+      <textarea id="application-modal-letter" style="min-height:200px;"></textarea>
+      <div class="copy-row">
+        <button class="btn btn-secondary btn-sm" id="application-modal-copy-letter">Copy</button>
+        <button class="btn btn-secondary btn-sm" id="application-modal-download-letter-pdf">Download PDF</button>
+      </div>
+    </div>
+    <div id="amtab-email" style="display:none;">
+      <div class="field"><label>Subject</label><input type="text" id="application-modal-email-subject" /></div>
+      <div class="field"><label>Body</label><textarea id="application-modal-email-body" style="min-height:160px;"></textarea></div>
+      <div class="copy-row"><button class="btn btn-secondary btn-sm" id="application-modal-copy-email">Copy</button></div>
+    </div>
+    <div id="amtab-skills" style="display:none;">
+      <div class="card-title" style="font-size:13px;">Matched</div>
+      <div class="chip-row" id="application-modal-matched"></div>
+      <div class="card-title" style="font-size:13px; margin-top:12px;">Gap</div>
+      <p class="hint" style="margin:2px 0 4px;">Click a skill to add it to your profile.</p>
+      <div class="chip-row" id="application-modal-gap"></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="flex-between">
+      <button class="btn btn-danger" id="application-modal-delete-btn">Delete</button>
+      <button class="btn btn-primary" id="application-modal-save-btn">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- CDN libraries (loaded by your browser, not bundled) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Firebase (config must load before the module; the module always finishes before DOMContentLoaded) -->
+<script src="js/firebase-config.js"></script>
+<script src="js/invite-config.js"></script>
+<script src="js/adzuna-config.js"></script>
+<script type="module" src="js/firebase.js?v=20"></script>
+
+<!-- gapNinja app -->
+<script src="js/skills-data.js?v=20"></script>
+<script src="js/matching.js?v=20"></script>
+<script src="js/templates.js?v=20"></script>
+<script src="js/pdf-utils.js?v=20"></script>
+<script src="js/pdf-export.js?v=20"></script>
+<script src="js/ui-resumes.js?v=20"></script>
+<script src="js/ui-companies.js?v=20"></script>
+<script src="js/ui-support.js?v=20"></script>
+<script src="js/ui-compare.js?v=20"></script>
+<script src="js/ui-tasks.js?v=20"></script>
+<script src="js/ui-dashboard.js?v=20"></script>
+<script src="js/ui-invite.js?v=20"></script>
+<script src="js/ui-profile.js?v=20"></script>
+<script src="js/ui-admin.js?v=20"></script>
+<script src="js/app.js?v=20"></script>
+<script src="js/auth-ui.js?v=20"></script>
+</body>
+</html>

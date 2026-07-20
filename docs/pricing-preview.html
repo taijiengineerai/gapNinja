@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>gapNinja — Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-panel: #161b22;
+    --bg-panel-2: #1c2330;
+    --border: #2a3140;
+    --text: #e6edf3;
+    --text-dim: #8b96a5;
+    --neon: #39ff88;
+    --neon-dim: #22c55e;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --radius: 10px;
+    --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+    --font-body: 'Inter', 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    padding: 60px 20px 100px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .brand {
+    text-align: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 20px;
+    margin-bottom: 48px;
+  }
+  .brand .gap { color: var(--text); }
+  .brand .ninja { color: var(--neon); }
+  .hero { text-align: center; margin-bottom: 40px; }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+  }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 32px 0 44px;
+    font-size: 14px;
+  }
+  .toggle-label { color: var(--text-dim); transition: color 0.15s; }
+  .toggle-label.active { color: var(--text); font-weight: 600; }
+  .switch {
+    position: relative;
+    width: 46px;
+    height: 26px;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .switch-knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--neon);
+    border-radius: 50%;
+    transition: left 0.18s ease;
+  }
+  .switch.on .switch-knob { left: 22px; }
+  .save-badge {
+    background: rgba(57, 255, 136, 0.12);
+    color: var(--neon);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  @media (max-width: 860px) { .tiers { grid-template-columns: 1fr; } }
+  .tier {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .tier.featured {
+    border: 1px solid var(--neon-dim);
+    box-shadow: 0 0 0 1px var(--neon-dim);
+  }
+  .tier-badge {
+    position: absolute;
+    top: -13px;
+    left: 24px;
+    background: var(--neon);
+    color: #06210f;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .tier-name {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 4px 0 4px;
+  }
+  .tier-desc { color: var(--text-dim); font-size: 13px; margin: 0 0 20px; min-height: 34px; }
+  .tier-price {
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .tier-price span { font-size: 14px; font-weight: 500; color: var(--text-dim); font-family: var(--font-body); }
+  .tier-price-sub { font-size: 12px; color: var(--text-dim); margin-bottom: 24px; min-height: 16px; }
+  .tier-cta {
+    display: block;
+    text-align: center;
+    padding: 11px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 24px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+  }
+  .tier-cta.primary { background: var(--neon); color: #06210f; border: none; }
+  .tier-cta.secondary { background: var(--bg-panel-2); color: var(--text); }
+  .tier-cta.ghost { background: transparent; color: var(--text-dim); }
+  .tier-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; font-size: 13.5px; }
+  .tier-features li { display: flex; align-items: flex-start; gap: 8px; color: var(--text); }
+  .tier-features li.dim { color: var(--text-dim); }
+  .check { color: var(--neon); flex-shrink: 0; margin-top: 1px; }
+  .cross { color: var(--text-dim); flex-shrink: 0; margin-top: 1px; }
+  .faq { max-width: 640px; margin: 80px auto 0; }
+  .faq h2 {
+    font-family: var(--font-display);
+    text-align: center;
+    font-size: 22px;
+    margin-bottom: 28px;
+  }
+  .faq-item { border-bottom: 1px solid var(--border); padding: 16px 0; }
+  .faq-item summary { cursor: pointer; font-weight: 600; font-size: 14.5px; list-style: none; }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item p { color: var(--text-dim); font-size: 13.5px; margin: 10px 0 0; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="gap">gap</span><span class="ninja">Ninja</span></div>
+
+  <div class="hero">
+    <h1>Simple pricing, no surprises</h1>
+    <p>Track every application for free. Upgrade when you're ready to stop worrying about limits.</p>
+  </div>
+
+  <div class="toggle-wrap">
+    <span class="toggle-label active" id="label-monthly">Monthly</span>
+    <div class="switch" id="billing-switch" role="switch" aria-checked="false" tabindex="0">
+      <div class="switch-knob"></div>
+    </div>
+    <span class="toggle-label" id="label-annual">Annual</span>
+    <span class="save-badge">2 months free</span>
+  </div>
+
+  <div class="tiers">
+
+    <div class="tier">
+      <div class="tier-name">Free</div>
+      <p class="tier-desc">Everything you need to start and run a real job search.</p>
+      <div class="tier-price">$0</div>
+      <div class="tier-price-sub">forever</div>
+      <a class="tier-cta secondary">Get started free</a>
+      <ul class="tier-features">
+        <li><span class="check">✓</span> Unlimited job comparisons & skills-gap scans</li>
+        <li><span class="check">✓</span> Unlimited cover letters & follow-ups</li>
+        <li><span class="check">✓</span> Save up to 15 applications to your tracker</li>
+        <li><span class="check">✓</span> 1 resume stored</li>
+        <li class="dim"><span class="cross">–</span> AI resume rewriting</li>
+        <li class="dim"><span class="cross">–</span> Unlimited saved history</li>
+      </ul>
+    </div>
+
+    <div class="tier featured">
+      <div class="tier-badge">Most popular</div>
+      <div class="tier-name">Pro</div>
+      <p class="tier-desc">For anyone actively applying and tracking a real pipeline.</p>
+      <div class="tier-price price-monthly">$9<span>/mo</span></div>
+      <div class="tier-price price-annual" style="display:none;">$6.58<span>/mo</span></div>
+      <div class="tier-price-sub price-monthly">billed monthly</div>
+      <div class="tier-price-sub price-annual" style="display:none;">$79/yr, billed annually</div>
+      <a class="tier-cta primary">Upgrade to Pro</a>
+      <ul class="tier-features">
+        <li><span class="check">✓</span> Everything in Free</li>
+        <li><span class="check">✓</span> Unlimited saved applications</li>
+        <li><span class="check">✓</span> Unlimited resumes stored</li>
+        <li><span class="check">✓</span> AI-powered resume rewriting</li>
+        <li><span class="check">✓</span> Priority support</li>
+      </ul>
+    </div>
+
+    <div class="tier">
+      <div class="tier-name">Teams</div>
+      <p class="tier-desc">For career coaches and university career centers.</p>
+      <div class="tier-price" style="font-size:24px;">Contact us</div>
+      <div class="tier-price-sub">custom seat pricing</div>
+      <a class="tier-cta ghost">Coming soon</a>
+      <ul class="tier-features">
+        <li><span class="check">✓</span> Everything in Pro</li>
+        <li><span class="check">✓</span> Multiple client pipelines</li>
+        <li><span class="check">✓</span> Coach / admin seats</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="faq">
+    <h2>Questions</h2>
+    <details class="faq-item" open>
+      <summary>What happens to my data if I go over 15 applications on Free?</summary>
+      <p>Nothing is deleted. You'll keep full access to your 15 most recent applications; older ones are archived and become read-only until you upgrade.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Are job comparisons and skills-gap scans really unlimited on Free?</summary>
+      <p>Yes — compare your resume against as many job descriptions as you want, anytime, on any plan. The 15-application limit only applies to how many results you keep saved in your tracker. Running a comparison never counts against it.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Can I cancel anytime?</summary>
+      <p>Yes. Cancel from your account settings whenever you like — you'll keep Pro access through the end of your current billing period.</p>
+    </details>
+    <details class="faq-item">
+      <summary>Is there a discount for students or career changers?</summary>
+      <p>Reach out through Support and we'll take care of you.</p>
+    </details>
+  </div>
+</div>
+
+<script>
+  const sw = document.getElementById('billing-switch');
+  const labelM = document.getElementById('label-monthly');
+  const labelA = document.getElementById('label-annual');
+  function setAnnual(isAnnual) {
+    sw.classList.toggle('on', isAnnual);
+    sw.setAttribute('aria-checked', String(isAnnual));
+    labelM.classList.toggle('active', !isAnnual);
+    labelA.classList.toggle('active', isAnnual);
+    document.querySelectorAll('.price-monthly').forEach(el => el.style.display = isAnnual ? 'none' : '');
+    document.querySelectorAll('.price-annual').forEach(el => el.style.display = isAnnual ? '' : 'none');
+  }
+  sw.addEventListener('click', () => setAnnual(!sw.classList.contains('on')));
+  sw.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAnnual(!sw.classList.contains('on')); } });
+</script>
+</body>
+</html>

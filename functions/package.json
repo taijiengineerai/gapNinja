@@ -1,0 +1,13 @@
+{
+  "name": "gapninja-functions",
+  "description": "Optional Cloud Function that sends invite-a-friend emails automatically. Not required to run gapNinja — the app works fully without this (invites just open the user's own email app instead).",
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "private": true
+}
