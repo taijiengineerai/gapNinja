@@ -74,6 +74,11 @@ if (!isConfigured) {
   const auth = getAuth(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
+  // Fail fast instead of Firebase's default ~10 min retry window — if Storage isn't
+  // set up yet (or a request is blocked), resume text/skills should still save without
+  // the UI hanging. Once Storage is fully configured this has no effect on success cases.
+  storage.maxUploadRetryTime = 5000;
+  storage.maxOperationRetryTime = 5000;
   const provider = new GoogleAuthProvider();
 
   function currentUid() {
