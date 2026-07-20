@@ -59,14 +59,19 @@ This is the one-time setup that gives gapNinja real Google sign-in and a private
    firebase deploy --only firestore:rules
    ```
    This is what makes it secure — every document lives under `users/{yourGoogleUserId}/...` and Firestore rejects any read or write that isn't from that exact signed-in account, with one exception: accounts listed in a separate `admins/` collection get read-only access across every user, which is what powers the Admin Dashboard (see below).
-8. That's it — run `node server.js`, open `http://localhost:8000`, and sign in.
+8. **Enable Cloud Storage (for resume PDF previews):** in the left sidebar, go to **Build → Storage → Get started**, and accept the default production-mode setup. Then lock it down the same way as Firestore — the rules live in `storage.rules` in this folder — paste its contents into Storage Console → **Rules** tab → **Publish**, or run:
+   ```
+   firebase deploy --only storage:rules
+   ```
+   This restricts every file to `users/{yourGoogleUserId}/...`, so only you can read or write your own uploaded resume files.
+9. That's it — run `node server.js`, open `http://localhost:8000`, and sign in.
 
 **Free tier:** Firestore's free "Spark" plan includes 50,000 reads and 20,000 writes per day and 1GB storage — far more than a personal job search will ever use. No credit card is required to stay on this plan.
 
 ## What it does
 
 - **Sign in with Google, or email/password** — real Firebase Authentication. Your resumes, companies, applications, and profile are stored in Firestore under your account only; no one else can read them, enforced by the security rule above (not just app logic). Password accounts use Firebase's built-in secure hashing (nothing is ever stored or handled as plain text), and a "Forgot password?" link on the sign-in form emails a reset link via Firebase.
-- **Resumes** — upload PDF resumes. Text is extracted right in your browser (via pdf.js) and scanned against a built-in library of ~100 skills. Keep multiple versions (e.g. one general, one backend-focused) and pick which to use per comparison.
+- **Resumes** — upload PDF resumes. Text is extracted right in your browser (via pdf.js) and scanned against a built-in library of ~100 skills. Keep multiple versions (e.g. one general, one backend-focused) and pick which to use per comparison. The original PDF is also saved to Cloud Storage (private to your account, same per-user isolation as Firestore) so you can click **View** on any saved version to see the actual file rendered, not just its extracted text.
 - **Compare & Analyze** — pick a resume, enter the company/role, paste a job description (or try auto-fetching from a link — most job sites block this, so pasting is the reliable path). You get:
   - a match score
   - matched, missing (gap), and bonus skill lists
@@ -179,8 +184,9 @@ Matching is done entirely client-side with a curated skills dictionary (`js/skil
 ```
 index.html              Landing page + app shell (all views, modals)
 server.js                Zero-dependency local static server
-firebase.json             Firestore rules + Hosting + Cloud Functions deploy config
+firebase.json             Firestore rules + Storage rules + Hosting + Cloud Functions deploy config
 firestore.rules            Security rules — per-user data isolation + admins/{uid} read access
+storage.rules              Cloud Storage rules — per-user isolation for uploaded resume PDFs
 .firebaserc               Links this folder to your Firebase project
 functions/                Optional Cloud Functions: sendInvite, sendAdminReport (see README above)
 css/style.css             Styling (dark "ninja" theme + landing page)
@@ -215,7 +221,11 @@ This repo is meant to be safe to make public. Two different rules apply, dependi
 Every document lives under the signed-in user's own subtree:
 
 ```
-users/{uid}/resumes/{id}        label, filename, rawText, skillCount, createdAt
+users/{uid}/resumes/{id}        label, filename, rawText, skillCount, createdAt, pdfUrl, pdfPath
+                                  (pdfUrl/pdfPath point at the original uploaded PDF in Cloud
+                                  Storage, at users/{uid}/resumes/{id}.pdf — used by the "View"
+                                  button to preview the actual file; absent if the Storage upload
+                                  failed, in which case matching still works from rawText alone)
 users/{uid}/companies/{id}      name, website, contactEmail, contactPhone, linkedin, notes,
                                   createdAt
 users/{uid}/applications/{id}   companyId, companyName, role, jdText, resumeId, matchScore,

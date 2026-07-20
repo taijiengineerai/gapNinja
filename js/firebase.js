@@ -31,6 +31,13 @@ import {
   orderBy,
   runTransaction,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-storage.js";
 
 const cfg = window.GAPNINJA_FIREBASE_CONFIG || {};
 const isConfigured = cfg.apiKey && cfg.apiKey.indexOf("YOUR_") !== 0;
@@ -66,6 +73,7 @@ if (!isConfigured) {
   const app = initializeApp(cfg);
   const auth = getAuth(app);
   const db = getFirestore(app);
+  const storage = getStorage(app);
   const provider = new GoogleAuthProvider();
 
   function currentUid() {
@@ -110,6 +118,50 @@ if (!isConfigured) {
     };
   }
 
+  // Resumes are the one collection that also needs the ORIGINAL FILE, not just its extracted
+  // text — so you can view exactly what you uploaded later, not a re-rendered guess at it. The
+  // Firestore doc (label, filename, rawText, skillCount) is the source of truth for matching and
+  // listing; the actual PDF bytes live in Cloud Storage at users/{uid}/resumes/{resumeId}.pdf,
+  // with a pdfUrl field on the Firestore doc pointing at it once the upload finishes.
+  // File upload is deliberately best-effort: if it fails, the resume record (and matching) is
+  // still saved — you just won't get a "View" button for that one, same as resumes uploaded
+  // before this feature existed.
+  const resumesApi = makeCollectionApi("resumes");
+  const resumesBaseAdd = resumesApi.add.bind(resumesApi);
+  const resumesBaseRemove = resumesApi.remove.bind(resumesApi);
+
+  resumesApi.add = async function (record, file) {
+    const created = await resumesBaseAdd(record);
+    if (file) {
+      try {
+        const uid = currentUid();
+        const path = `users/${uid}/resumes/${created.id}.pdf`;
+        const fileRef = storageRef(storage, path);
+        await uploadBytes(fileRef, file, { contentType: "application/pdf" });
+        const pdfUrl = await getDownloadURL(fileRef);
+        await resumesApi.update(created.id, { pdfUrl, pdfPath: path });
+        created.pdfUrl = pdfUrl;
+        created.pdfPath = path;
+      } catch (e) {
+        console.error("Saving the viewable PDF file failed (resume text and matching were still saved fine):", e);
+      }
+    }
+    return created;
+  };
+
+  resumesApi.remove = async function (id) {
+    const uid = currentUid();
+    if (uid && id) {
+      try {
+        await deleteObject(storageRef(storage, `users/${uid}/resumes/${id}.pdf`));
+      } catch (e) {
+        // Fine if there's nothing to delete — resumes uploaded before this feature existed, or
+        // the file upload failed at save time, never had a file in Storage to begin with.
+      }
+    }
+    return resumesBaseRemove(id);
+  };
+
   const companiesApi = makeCollectionApi("companies");
   companiesApi.findByName = async function (name) {
     const items = await companiesApi.list();
@@ -140,7 +192,7 @@ if (!isConfigured) {
   };
 
   const Storage = {
-    resumes: makeCollectionApi("resumes"),
+    resumes: resumesApi,
     companies: companiesApi,
     applications: makeCollectionApi("applications"),
     tasks: makeCollectionApi("tasks"),

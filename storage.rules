@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// gapNinja Cloud Storage rules — each user can only read/write their own files.
+// Mirrors the per-user isolation pattern used in firestore.rules.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /users/{userId}/{allPaths=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

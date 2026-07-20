@@ -2,6 +2,9 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -12,7 +15,8 @@
       "functions/**",
       "README.md",
       "server.js",
-      "firestore.rules"
+      "firestore.rules",
+      "storage.rules"
     ],
     "headers": [
       {
