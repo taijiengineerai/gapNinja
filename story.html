@@ -143,6 +143,18 @@
   .closing-btn.primary { background: var(--neon); color: #06210f; }
   .closing-btn.secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
   .unlisted-note { text-align: center; font-size: 12px; color: var(--text-dim); margin-top: 24px; }
+
+  .pull-quote {
+    border-left: 3px solid var(--neon);
+    padding: 4px 0 4px 20px;
+    margin: 0 0 40px;
+  }
+  .pull-quote p {
+    font-family: var(--font-display);
+    font-size: 21px; font-weight: 700; letter-spacing: -0.01em;
+    line-height: 1.4; margin: 0; color: var(--text);
+  }
+  .pull-quote p .accent { color: var(--neon); }
 </style>
 </head>
 <body>
@@ -152,8 +164,12 @@
 
   <div class="hero">
     <h1>Building gapNinja: from a blank prompt to a live product in four days.</h1>
-    <p class="name-line">By <span class="fill-me">[your name]</span> — <span class="fill-me">[your one-line title: e.g. "product-minded builder" / "engineer" / whatever's true]</span></p>
+    <p class="name-line">By Choying Huynh</p>
     <p class="dek">This is the story of one project, told in full: the idea, the design calls, the planning, and the moments things broke and had to get fixed. Not a highlight reel — the actual sequence of decisions, including the ones I reversed.</p>
+  </div>
+
+  <div class="pull-quote">
+    <p>I didn't lose a single job to being underqualified. I lost track of it in <span class="accent">tab twenty-three</span> of a search I could no longer explain to myself.</p>
   </div>
 
   <div class="stat-strip">
@@ -168,13 +184,13 @@
   <div class="problem-panels">
     <div class="problem-panel">
       <div class="k">The complaint</div>
-      <h3>Job search tools tell you a number, not the truth</h3>
-      <p>Most tools give you a vague "match score" with nothing behind it — you can't act on 72%. What you actually need to know is which specific skills are missing, so you can decide whether to close the gap or apply anyway.</p>
+      <h3>Tracking the search was harder than doing the search</h3>
+      <p>Every application meant a slightly different resume, a job description that would vanish from the listing in a week, and a mental note about a follow-up that never got sent. A spreadsheet started strong and fell apart by week two. The actual hard part of job hunting wasn't finding roles — it was remembering, three weeks later, what I'd already sent where, and with which version of myself.</p>
     </div>
     <div class="problem-panel">
       <div class="k">The bet</div>
       <h3>Track the search, don't try to run it</h3>
-      <p>gapNinja doesn't source jobs or auto-apply. You bring the posting; it scores your fit against it honestly, drafts the letter, and remembers everything — because most people's "system" is a spreadsheet they stop updating by week two.</p>
+      <p>gapNinja doesn't source jobs or auto-apply — you bring the posting. It scores your fit against it honestly, drafts the letter, and remembers every detail so the tracking never depends on you remembering to update it.</p>
     </div>
   </div>
 
