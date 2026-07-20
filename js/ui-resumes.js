@@ -82,7 +82,7 @@
         <td>${escapeHtml(r.label)}</td>
         <td class="muted">${escapeHtml(r.filename || "")}</td>
         <td>${r.skillCount != null ? r.skillCount : "—"}</td>
-        <td class="muted">${new Date(r.createdAt).toLocaleDateString()}</td>
+        <td class="muted">${new Date(r.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</td>
         <td><button class="btn btn-danger btn-sm" data-del="${r.id}">Delete</button></td>
       </tr>`;
     });
