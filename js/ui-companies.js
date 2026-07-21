@@ -16,6 +16,7 @@
     document.getElementById("company-modal-lookup-btn").addEventListener("click", lookupContactInfo);
     document.getElementById("company-search-input").addEventListener("input", renderList);
     document.getElementById("company-period-filter").addEventListener("change", renderList);
+    document.getElementById("company-sort").addEventListener("change", renderList);
   }
 
   async function openModal(id) {
@@ -258,10 +259,22 @@
       entries = entries.filter(({ activityDate }) => isThisMonth(activityDate));
     }
 
-    // Alphabetical by name — the primary sort. Each card also surfaces its most recent
-    // application date (from the history below) so you can see at a glance whether it's
-    // something you applied to recently or a much older comparison.
-    entries.sort((a, b) => (a.c.name || "").localeCompare(b.c.name || "", undefined, { sensitivity: "base" }));
+    // Each card also surfaces its most recent application date (from the history below) so you
+    // can see at a glance whether it's something you applied to recently or a much older
+    // comparison — independent of whichever sort order is chosen below.
+    const sortBy = document.getElementById("company-sort").value || "name";
+    if (sortBy === "recent") {
+      // Most recent comparison first; companies with no comparison yet sort to the bottom,
+      // then alphabetically among themselves so that group isn't left in random order.
+      entries.sort((a, b) => {
+        if (!a.mostRecent && !b.mostRecent) return (a.c.name || "").localeCompare(b.c.name || "", undefined, { sensitivity: "base" });
+        if (!a.mostRecent) return 1;
+        if (!b.mostRecent) return -1;
+        return (b.activityDate || 0) - (a.activityDate || 0);
+      });
+    } else {
+      entries.sort((a, b) => (a.c.name || "").localeCompare(b.c.name || "", undefined, { sensitivity: "base" }));
+    }
 
     if (entries.length === 0) {
       const reason = search && period === "month"
