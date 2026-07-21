@@ -24,6 +24,22 @@
     return names;
   }
 
+  // Picks up to n bonus-skill names (skills you have that the posting doesn't ask for) for the
+  // "beyond what the posting asks for" line, preferring ones in the SAME category as skills the
+  // job actually asks about (matched + gap) — e.g. for a Marketing role, "SEO" or "Content
+  // Strategy" outrank an unrelated "AWS" just because it's mentioned more in the resume. Falls
+  // back to the next-most-relevant bonus skills if fewer than n are in a related category, so the
+  // sentence always fills in rather than coming up short.
+  function relatedBonusNames(analysis, n) {
+    const jdCategories = new Set(analysis.matched.concat(analysis.gap).map((s) => s.skill.category));
+    const ranked = analysis.bonus.slice().sort((a, b) => {
+      const aRelated = jdCategories.has(a.skill.category) ? 1 : 0;
+      const bRelated = jdCategories.has(b.skill.category) ? 1 : 0;
+      return bRelated - aRelated; // stable sort — ties keep their original (resume-count) order
+    });
+    return ranked.slice(0, n).map((s) => s.skill.name);
+  }
+
   function joinList(arr) {
     if (arr.length === 0) return "";
     if (arr.length === 1) return arr[0];
@@ -36,7 +52,7 @@
     const matchedNames = joinList(topNames(analysis.matched, 5));
     const gapNames = topUniqueGapNames(analysis.gap, 3);
     const gapText = gapNames.length ? joinList(gapNames) : null;
-    const bonusNames = joinList(topNames(analysis.bonus, 3));
+    const bonusNames = joinList(relatedBonusNames(analysis, 3));
     const roleText = role || "[Role Title]";
     const companyText = company || "[Company Name]";
 
