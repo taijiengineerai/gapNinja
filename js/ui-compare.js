@@ -6,6 +6,7 @@
   let lastAnalysis = null;
   let originTaskId = null; // set when arriving from the Job Queue's "Analyze this job" action
   let lastAutoFetchedUrl = ""; // guards against re-fetching the same link every time the field is blurred
+  let scamCheckRequestId = 0; // guards the async Safe Browsing lookup against a stale/edited request
 
   function init() {
     document.getElementById("compare-fetch-btn").addEventListener("click", () => tryAutoFetch({ manual: true }));
@@ -24,9 +25,10 @@
       el.addEventListener(evt, invalidateStaleResults);
     });
 
-    // The scam-risk result reflects a specific link + description snapshot — if either changes,
-    // clear it so an old "looks safe" result can't linger next to an edited (and now unchecked) link.
-    ["compare-url", "compare-jd"].forEach((id) => {
+    // The scam-risk result reflects a specific link + description + company-name snapshot — if
+    // any of them change, clear it so an old "looks safe" result can't linger next to edited
+    // (and now unchecked) input.
+    ["compare-url", "compare-jd", "compare-company"].forEach((id) => {
       document.getElementById(id).addEventListener("input", clearScamCheckResult);
     });
   }
@@ -34,19 +36,30 @@
   function runScamCheck() {
     const url = document.getElementById("compare-url").value.trim();
     const jdText = document.getElementById("compare-jd").value.trim();
+    const company = document.getElementById("compare-company").value.trim();
     if (!url && !jdText) {
       window.GapNinja.toast("Add a job link or paste the description first");
       return;
     }
-    const result = window.GapNinja.ScamCheck.analyze(url, jdText);
-    renderScamCheckResult(result);
+    const requestId = ++scamCheckRequestId;
+    const result = window.GapNinja.ScamCheck.analyze(url, jdText, company);
+    renderScamCheckResult(result, !!url);
+
+    if (url) {
+      window.GapNinja.ScamCheck.checkSafeBrowsing(url).then((sb) => {
+        // A newer check ran (or the fields were edited) while this was in flight — drop it.
+        if (requestId !== scamCheckRequestId) return;
+        renderSafeBrowsingStatus(sb);
+      });
+    }
   }
 
   function clearScamCheckResult() {
+    scamCheckRequestId++;
     document.getElementById("compare-scamcheck-result").innerHTML = "";
   }
 
-  function renderScamCheckResult(result) {
+  function renderScamCheckResult(result, checkingSafeBrowsing) {
     const el = document.getElementById("compare-scamcheck-result");
     const meta = {
       low: { color: "var(--neon)", label: "Low risk" },
@@ -54,8 +67,8 @@
       high: { color: "var(--red)", label: "High risk — proceed with caution" },
     }[result.level];
 
-    let html = `<div style="border:1px solid ${meta.color}; border-radius:8px; padding:10px 12px; margin-top:8px;">
-      <div style="font-weight:600; color:${meta.color};">${escapeHtml(meta.label)}</div>`;
+    let html = `<div id="compare-scamcheck-box" style="border:1px solid ${meta.color}; border-radius:8px; padding:10px 12px; margin-top:8px;">
+      <div id="compare-scamcheck-label" style="font-weight:600; color:${meta.color};">${escapeHtml(meta.label)}</div>`;
 
     if (result.flags.length) {
       html += `<ul style="margin:6px 0 0; padding-left:18px; font-size:12.5px; color:var(--text-dim);">`;
@@ -70,9 +83,38 @@
     if (!result.checkedText) {
       html += `<div class="hint" style="margin-top:6px;">Paste the job description text too for a fuller check — right now this only scanned the link.</div>`;
     }
+    if (checkingSafeBrowsing) {
+      html += `<div class="hint" id="compare-scamcheck-sb" style="margin-top:6px;">Checking the link against Google Safe Browsing…</div>`;
+    }
     html += `<div class="hint" style="margin-top:6px;">This is a pattern-based check, not a guarantee — always verify the company independently before sharing personal info or paying anything to apply.</div>`;
     html += `</div>`;
     el.innerHTML = html;
+  }
+
+  function renderSafeBrowsingStatus(sb) {
+    const sbEl = document.getElementById("compare-scamcheck-sb");
+    if (!sbEl) return;
+    if (!sb.configured) {
+      sbEl.textContent = "Add a free Google Safe Browsing API key for a live blocklist check too — see README.md, \"Job-scam link check (Safe Browsing)\".";
+      return;
+    }
+    if (sb.error) {
+      sbEl.textContent = "Couldn't reach Google Safe Browsing to check this link (network or key issue) — pattern check above still applies.";
+      return;
+    }
+    if (sb.matched) {
+      sbEl.innerHTML = `⚠ <strong>Google Safe Browsing has flagged this exact link</strong> for ${escapeHtml(sb.threatTypes.join(", ") || "a known threat")} — treat this as a strong warning, not just a pattern match.`;
+      sbEl.style.color = "var(--red)";
+      const box = document.getElementById("compare-scamcheck-box");
+      const label = document.getElementById("compare-scamcheck-label");
+      if (box) box.style.borderColor = "var(--red)";
+      if (label) {
+        label.style.color = "var(--red)";
+        label.textContent = "High risk — proceed with caution";
+      }
+    } else {
+      sbEl.textContent = "Checked against Google Safe Browsing — this link isn't on their known phishing/malware list.";
+    }
   }
 
   function invalidateStaleResults() {

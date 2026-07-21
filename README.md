@@ -78,7 +78,7 @@ This is the one-time setup that gives gapNinja real Google sign-in and a private
   - suggested learning resources for each gap skill
   - a drafted, editable cover letter that leads with your strengths and frames the gaps honestly
   - a drafted, editable follow-up email
-  - a "Check for scam risk" button (`js/scam-check.js`) that scans the link and description for common job-scam red flags — upfront fees, wire transfers, gift cards, crypto payments, no-interview-required, link shorteners/IP-address links, and more. It's pattern-matching, not a fraud database, so treat a "low risk" result as one signal among many, not a guarantee — always verify a company independently before sharing personal info or paying anything to apply.
+  - a "Check for scam risk" button (`js/scam-check.js`) that scans the link and description for common job-scam red flags — upfront fees, wire transfers, gift cards, crypto payments, no-interview-required, link shorteners/IP-address links, punycode/homograph domains, risky top-level domains, a domain that doesn't match the company name you entered, and more. It's pattern-matching, not a fraud database, so treat a "low risk" result as one signal among many, not a guarantee — always verify a company independently before sharing personal info or paying anything to apply. If you set up a free Safe Browsing key (see below), it also checks the link against Google's live phishing/malware blocklist.
 - **Resumes** — upload PDF resumes (parsed client-side for skills and section content), keep multiple labeled versions, and delete any you no longer need.
 - **Job Queue** — paste job links as you find them, then run them through Compare & Analyze when you're ready.
 - **Dashboard** — every comparison you've saved, with status (not applied / ready / applied / interviewing / offer / rejected), match score, notes, and the full cover letter/email, all editable.
@@ -102,6 +102,22 @@ The "Fetch matching jobs" button on your Profile page needs a free Adzuna API ke
 4. Reload the app. On your Profile page, fill in keywords (or leave blank to use your top skills), a location, a country, and how many days back to search (1–90), then click **Fetch matching jobs**.
 
 Without these keys, the button still shows up but tells you it isn't configured yet instead of failing silently.
+
+## Job-scam link check (Safe Browsing, optional)
+
+The "Check for scam risk" button on Compare & Analyze (see "What it does" above) works fully without any setup — its pattern checks on the link and description run entirely client-side. Adding a free Google Safe Browsing API key layers in a live check against Google's actual reported-phishing/malware list for the exact link you pasted.
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and select your gapNinja project (`gapninja-5c222`).
+2. Go to **APIs & Services → Library**, search "Safe Browsing API", and click **Enable**.
+3. Go to **APIs & Services → Credentials → Create Credentials → API key**.
+4. Click the new key to restrict it: under "API restrictions," limit it to the Safe Browsing API only; under "Application restrictions," choose "Websites" and add your deployed site's URL (e.g. `https://gapninja-5c222.web.app/*`) so the key can't be reused elsewhere even if someone finds it in your page source.
+5. Copy `js/safebrowsing-config.example.js` to `js/safebrowsing-config.js` (gitignored, same pattern as the Adzuna keys above), then paste your key in:
+   ```js
+   window.GAPNINJA_SAFEBROWSING_API_KEY = "your-api-key";
+   ```
+6. Reload the app. Next time you run the scam-risk check with a link filled in, it'll also show a Safe Browsing status line under the pattern-check results.
+
+Free tier covers up to 10,000 lookups/day — far more than personal use needs. Without this key, the scam-risk check still works, it just skips this part and shows a note suggesting you add it.
 
 ## Automatic invite emails (optional)
 
@@ -198,7 +214,8 @@ js/firebase.js            Firebase Auth (Google + email/password, password reset
 js/auth-ui.js              Shows the landing page or the app based on sign-in state
 js/skills-data.js         Skills dictionary + learning-resource links
 js/matching.js             Skill extraction & gap-scoring engine
-js/scam-check.js           Heuristic job-scam red-flag scanner for Compare & Analyze
+js/scam-check.js           Heuristic job-scam red-flag scanner + Safe Browsing lookup for Compare & Analyze
+js/safebrowsing-config.example.js  Tracked template, blank on purpose — copy to js/safebrowsing-config.js (gitignored) and fill in your own Safe Browsing API key
 js/templates.js            Cover letter, follow-up email, and Skills Summary generation
 js/pdf-utils.js            PDF text extraction (pdf.js wrapper)
 js/pdf-export.js            Plain-text-to-PDF export (jsPDF wrapper), used for cover letters and Skills Summaries
