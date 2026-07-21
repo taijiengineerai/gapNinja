@@ -194,7 +194,7 @@
   </div>
 
   <h2 class="section-title">How it actually got built</h2>
-  <p class="section-lede">Four days, in order — including the decisions that got reversed, because those are the ones worth telling.</p>
+  <p class="section-lede">In order — the founding sprint, then what kept shipping once real usage started surfacing the next thing to fix.</p>
   <div class="timeline">
     <div class="phase">
       <div class="phase-tag">Day 1 — Idea & core loop</div>
@@ -230,6 +230,21 @@
       <div class="phase-tag">Day 4 — The privacy audit nobody asked for</div>
       <h3>Before the repo went public, a full history search — and one real find</h3>
       <p>Every commit, not just the current files, got searched for anything that shouldn't be public. The good news: no API keys or user data had ever been committed. The actual finding was subtler — a personal email baked into every commit's author metadata, invisible unless you knew to look for it. Fixed by rewriting the entire history into a single clean commit under a non-personal identity, with the full original history preserved on a local-only backup branch first, in case anything needed to be recovered.</p>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">Day 5 — Real infrastructure, hit for the first time</div>
+      <h3>Previewing the actual PDF meant leaving Firestore's comfort zone</h3>
+      <p>gapNinja only ever stored a resume's <em>extracted text</em> — enough to match against a job, not enough to look at. Showing the real uploaded file meant adding Firebase Cloud Storage, and that surfaced edges a Firestore-only app never hits: a bucket needs its own CORS policy before a browser can even delete a file on it, Storage needed its own Blaze billing confirmation separate from the one Cloud Functions already had, and the client SDK's default retry window is <em>ten minutes</em> — so a missing bucket looked like a frozen "Saving…" button instead of a fast, honest failure. Debugged live against the real Google Cloud console, then capped the retry timeout to five seconds so the app degrades gracefully instead of hanging.</p>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">Day 5 — The same instinct, aimed outward</div>
+      <h3>Day 4 secured gapNinja's own data. Day 5 checked the job postings themselves</h3>
+      <p>Users paste job links straight into gapNinja — an obvious place to catch scams before someone acts on one. Built as two honest layers instead of one overconfident checker: instant, free pattern-matching (upfront fees, wire-transfer language, punycode lookalike domains, a link whose domain doesn't match the company name typed in) layered with an optional live lookup against Google's own Safe Browsing blocklist. Shipped everywhere a link actually lives — Compare & Analyze <em>and</em> the Job Queue — with the result always labeled a signal to look closer, never a verdict.</p>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">Day 5 — The small-feedback loop, again</div>
+      <h3>"Allow me to sort by alphabet and last comparison" — shipped the same session</h3>
+      <p>The Companies view only ever showed one order. A one-line request became a two-option sort dropdown — A–Z or most recent comparison — with no separate planning cycle in between. Same loop as Day 2's layout fix: real usage keeps finding what a spec never would.</p>
     </div>
   </div>
 
