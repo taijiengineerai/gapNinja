@@ -49,6 +49,42 @@
       .catch(() => window.GapNinja.toast("Couldn't copy — select and copy manually"));
   }
 
+  // Cache of the last-rendered, already-sorted list so moveLink() can reorder in memory and
+  // persist without waiting on a fresh Firestore round-trip first.
+  let cachedLinks = null;
+
+  // Links don't have a manual "order" field until you actually move one for the first time —
+  // until then this falls back to the original newest-first order (same as before this feature
+  // existed). Ordered links always sort ahead of not-yet-ordered ones, so once you start
+  // rearranging, any newly-added link lands at the bottom instead of jumping into the middle.
+  function compareLinks(a, b) {
+    const ao = a.order, bo = b.order;
+    if (ao != null && bo != null) return ao - bo;
+    if (ao != null) return -1;
+    if (bo != null) return 1;
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  }
+
+  // direction: -1 to move up, +1 to move down. Renumbers every link's order field to match the
+  // new positions (0..n-1) rather than juggling fractional gaps — link lists are small, so
+  // re-persisting the whole order on every move is simple and avoids float-drift bugs.
+  async function moveLink(id, direction) {
+    if (!cachedLinks) return;
+    const list = cachedLinks.slice().sort(compareLinks);
+    const idx = list.findIndex((l) => l.id === id);
+    const targetIdx = idx + direction;
+    if (idx === -1 || targetIdx < 0 || targetIdx >= list.length) return;
+
+    [list[idx], list[targetIdx]] = [list[targetIdx], list[idx]];
+
+    try {
+      await Promise.all(list.map((l, i) => S().links.update(l.id, { order: i })));
+      render();
+    } catch (e) {
+      window.GapNinja.toast("Couldn't reorder: " + e.message);
+    }
+  }
+
   // Only one row editable at a time — same pattern as the Job Queue's inline edit.
   let editingId = null;
 
@@ -91,14 +127,18 @@
       return;
     }
     if (links.length === 0) {
+      cachedLinks = null;
       wrap.innerHTML = `<div class="empty-state">No links saved yet. Add your LinkedIn, portfolio, or anything else above.</div>`;
       return;
     }
+    links.sort(compareLinks);
+    cachedLinks = links;
 
-    let html = `<table><thead><tr><th>Label</th><th>Link</th><th></th></tr></thead><tbody>`;
-    links.forEach((l) => {
+    let html = `<table><thead><tr><th></th><th>Label</th><th>Link</th><th></th></tr></thead><tbody>`;
+    links.forEach((l, i) => {
       if (l.id === editingId) {
         html += `<tr>
+          <td></td>
           <td><input type="text" data-edit-label value="${escapeHtml(l.label)}" placeholder="Label" /></td>
           <td><input type="url" data-edit-url value="${escapeHtml(l.url)}" placeholder="https://…" /></td>
           <td class="flex gap-8">
@@ -108,6 +148,10 @@
         </tr>`;
       } else {
         html += `<tr>
+          <td class="flex gap-8" style="gap:2px;">
+            <button class="icon-btn" data-move-up="${l.id}" title="Move up" ${i === 0 ? "disabled" : ""}>▲</button>
+            <button class="icon-btn" data-move-down="${l.id}" title="Move down" ${i === links.length - 1 ? "disabled" : ""}>▼</button>
+          </td>
           <td>${escapeHtml(l.label)}</td>
           <td class="mono" style="word-break:break-all;"><a href="${escapeHtml(withProtocol(l.url))}" target="_blank" rel="noopener">${escapeHtml(l.url)}</a></td>
           <td class="flex gap-8">
@@ -129,6 +173,8 @@
     wrap.querySelectorAll("[data-del]").forEach((btn) => btn.addEventListener("click", () => deleteLink(btn.getAttribute("data-del"))));
     wrap.querySelectorAll("[data-cancel]").forEach((btn) => btn.addEventListener("click", cancelEdit));
     wrap.querySelectorAll("[data-save]").forEach((btn) => btn.addEventListener("click", () => saveEdit(btn.getAttribute("data-save"), btn)));
+    wrap.querySelectorAll("[data-move-up]").forEach((btn) => btn.addEventListener("click", () => moveLink(btn.getAttribute("data-move-up"), -1)));
+    wrap.querySelectorAll("[data-move-down]").forEach((btn) => btn.addEventListener("click", () => moveLink(btn.getAttribute("data-move-down"), 1)));
   }
 
   function withProtocol(url) {
