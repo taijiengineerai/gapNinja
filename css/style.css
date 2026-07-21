@@ -15,6 +15,7 @@
   --purple: #a855f7;
   --red: #f87171;
   --amber: #fbbf24;
+  --blue: #60a5fa;
   --radius: 10px;
   --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
@@ -22,7 +23,10 @@
 
 /* Accent color themes — set via document.documentElement.dataset.theme by js/theme.js.
    No [data-theme] attribute (or data-theme="green") = the original green, unchanged above.
-   Only the accent hue changes; background/border/text tokens stay the same across all themes. */
+   Only the accent hue changes; background/border/text tokens stay the same across all themes.
+   Each of these has a lower-contrast dark-mode version above and a higher-contrast light-mode
+   version below (light backgrounds need a noticeably darker/more saturated shade of the same hue
+   to stay readable — see the [data-mode="light"] blocks further down). */
 [data-theme="blue"] {
   --neon: #3b9eff;
   --neon-dim: #2f7fd6;
@@ -33,6 +37,40 @@
   --neon-dim: #9a5cf0;
   --neon-rgb: 182,120,255;
 }
+
+/* Light mode — set via document.documentElement.dataset.mode by js/theme.js. No [data-mode]
+   attribute (or data-mode="dark") = the original dark surfaces above, unchanged.
+   The accent/semantic colors tuned for a dark canvas (bright, pastel-leaning) read as low-
+   contrast on a light one, so every hue gets a separate, darker/more-saturated value here rather
+   than just flipping the background — this is why light mode is its own block per accent theme
+   below instead of one generic override. */
+[data-mode="light"] {
+  color-scheme: light;
+  --bg: #f4f5f7;
+  --bg-panel: #ffffff;
+  --bg-panel-2: #edeff2;
+  --border: #d7dbe1;
+  --text: #1a1f28;
+  --text-dim: #5b6472;
+  --neon: #0f8a4c;
+  --neon-dim: #0a6b3a;
+  --neon-rgb: 15,138,76;
+  --purple: #7c3aed;
+  --red: #dc2626;
+  --amber: #b45309;
+  --blue: #1d6fd8;
+}
+[data-mode="light"][data-theme="blue"] {
+  --neon: #1a63c4;
+  --neon-dim: #154f9e;
+  --neon-rgb: 26,99,196;
+}
+[data-mode="light"][data-theme="purple"] {
+  --neon: #8b3fd1;
+  --neon-dim: #6f2fac;
+  --neon-rgb: 139,63,209;
+}
+[data-mode="light"] tr:hover td { background: rgba(0,0,0,0.03); }
 
 * { box-sizing: border-box; }
 /* Flex/grid items default to min-width:auto, which refuses to shrink below the longest
@@ -397,7 +435,7 @@ textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
 
 .status-not_applied { background: rgba(139,150,165,0.15); color: var(--text-dim); }
 .status-ready { background: rgba(251,191,36,0.14); color: var(--amber); }
-.status-applied { background: rgba(96,165,250,0.15); color: #60a5fa; }
+.status-applied { background: rgba(96,165,250,0.15); color: var(--blue); }
 .status-interviewing { background: rgba(168,85,247,0.15); color: var(--purple); }
 .status-offer { background: rgba(var(--neon-rgb),0.15); color: var(--neon); }
 .status-rejected { background: rgba(248,113,113,0.15); color: var(--red); }

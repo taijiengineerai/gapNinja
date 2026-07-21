@@ -83,10 +83,10 @@
       .filter((e) => e.title || e.company || e.duration || e.description);
   }
 
-  // ---------- Appearance (accent color theme) ----------
-  // Reads the current theme straight off the DOM (js/theme.js keeps document.documentElement's
-  // data-theme attribute in sync from localStorage/profile), so this doesn't need its own fetch —
-  // it's just reflecting whatever's already applied.
+  // ---------- Appearance (accent color + light/dark mode) ----------
+  // Reads the current theme/mode straight off the DOM (js/theme.js keeps document.documentElement's
+  // data-theme/data-mode attributes in sync from localStorage/profile), so this doesn't need its
+  // own fetch — it's just reflecting whatever's already applied.
   function renderThemePicker() {
     const wrap = document.getElementById("profile-theme-picker");
     const Theme = window.GapNinja.Theme;
@@ -104,8 +104,32 @@
       btn.addEventListener("click", async () => {
         const id = btn.getAttribute("data-theme-pick");
         await Theme.setTheme(id);
-        window.GapNinja.toast(`Theme set to ${Theme.THEMES.find((t) => t.id === id).label}`);
+        window.GapNinja.toast(`Accent color set to ${Theme.THEMES.find((t) => t.id === id).label}`);
         renderThemePicker();
+      });
+    });
+  }
+
+  function renderModePicker() {
+    const wrap = document.getElementById("profile-mode-picker");
+    const Theme = window.GapNinja.Theme;
+    if (!Theme) {
+      wrap.innerHTML = "";
+      return;
+    }
+    const current = Theme.getCurrentMode();
+    const icons = { dark: "🌙", light: "☀️" };
+    wrap.innerHTML = Theme.MODES.map(
+      (m) => `<button type="button" class="theme-swatch-btn${m.id === current ? " active" : ""}" data-mode-pick="${m.id}">
+        ${icons[m.id] || ""} ${escapeHtml(m.label)}
+      </button>`
+    ).join("");
+    wrap.querySelectorAll("[data-mode-pick]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-mode-pick");
+        await Theme.setMode(id);
+        window.GapNinja.toast(`Mode set to ${Theme.MODES.find((m) => m.id === id).label}`);
+        renderModePicker();
       });
     });
   }
@@ -113,6 +137,7 @@
   // ---------- Load / render ----------
   async function render() {
     renderThemePicker();
+    renderModePicker();
     let profile, resumes;
     try {
       [profile, resumes] = await Promise.all([S().profile.get(), S().resumes.list()]);

@@ -67,7 +67,7 @@
     {
       selector: "#nav-profile",
       title: "My Profile",
-      body: "Your skills, experience, and job search preferences live here — you can also fetch live job listings that match you, and pick an accent color theme under Appearance.",
+      body: "Your skills, experience, and job search preferences live here — you can also fetch live job listings that match you, and pick an accent color and light/dark mode under Appearance.",
     },
     {
       title: "That's the tour!",
