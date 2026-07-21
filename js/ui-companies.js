@@ -287,10 +287,7 @@
     }
 
     let html = "";
-    entries.forEach(({ c, relatedApps, mostRecent }) => {
-      const recencyLine = mostRecent
-        ? `<div class="hint" style="margin-top:4px;">Most recent: ${escapeHtml(new Date(mostRecent.createdAt).toLocaleDateString())} · ${escapeHtml(mostRecent.role || "role")}</div>`
-        : "";
+    entries.forEach(({ c, relatedApps }) => {
       const contactLines = [
         c.contactEmail ? `<a href="mailto:${escapeHtml(c.contactEmail)}">${escapeHtml(c.contactEmail)}</a>` : "",
         c.contactPhone ? escapeHtml(c.contactPhone) : "",
@@ -307,7 +304,6 @@
         ${c.website ? `<div class="hint"><a href="${escapeHtml(withProtocol(c.website))}" target="_blank" rel="noopener">${escapeHtml(c.website)}</a></div>` : ""}
         ${contactLines.length ? `<div class="hint" style="margin-top:4px;">${contactLines.join(" &nbsp;·&nbsp; ")}</div>` : ""}
         ${c.notes ? `<div style="font-size:13px; margin-top:8px; color:var(--text-dim);">${escapeHtml(c.notes)}</div>` : ""}
-        ${recencyLine}
         <div class="divider"></div>
         ${renderHistoryToggle(c.id, relatedApps)}
         ${renderHistoryList(c.id, relatedApps)}
@@ -338,7 +334,7 @@
     const rows = relatedApps
       .map((a) => {
         const snippet = escapeHtml((a.jdText || "").slice(0, 140)) + ((a.jdText || "").length > 140 ? "…" : "");
-        const date = a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "";
+        const date = a.createdAt ? formatTimestamp(a.createdAt) : "";
         return `<div class="history-row">
           <div class="flex-between">
             <div><strong>${escapeHtml(a.role || "Role")}</strong> <span class="hint">· ${date} · ${escapeHtml(a.resumeLabel || "—")}</span></div>
@@ -364,6 +360,19 @@
     if (!el) return;
     const showing = el.style.display !== "none";
     el.style.display = showing ? "none" : "block";
+  }
+
+  // Full date + time + timezone abbreviation (EST, CST, PDT, etc.) — whichever timezone the
+  // browser viewing it is actually in, not a hardcoded one, so it's always locally correct.
+  function formatTimestamp(ts) {
+    return new Date(ts).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
   }
 
   function withProtocol(url) {
