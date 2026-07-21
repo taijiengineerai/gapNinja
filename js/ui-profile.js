@@ -83,8 +83,36 @@
       .filter((e) => e.title || e.company || e.duration || e.description);
   }
 
+  // ---------- Appearance (accent color theme) ----------
+  // Reads the current theme straight off the DOM (js/theme.js keeps document.documentElement's
+  // data-theme attribute in sync from localStorage/profile), so this doesn't need its own fetch —
+  // it's just reflecting whatever's already applied.
+  function renderThemePicker() {
+    const wrap = document.getElementById("profile-theme-picker");
+    const Theme = window.GapNinja.Theme;
+    if (!Theme) {
+      wrap.innerHTML = "";
+      return;
+    }
+    const current = Theme.getCurrentTheme();
+    wrap.innerHTML = Theme.THEMES.map(
+      (t) => `<button type="button" class="theme-swatch-btn${t.id === current ? " active" : ""}" data-theme-pick="${t.id}">
+        <span class="theme-swatch" style="background:${t.swatch};"></span>${escapeHtml(t.label)}
+      </button>`
+    ).join("");
+    wrap.querySelectorAll("[data-theme-pick]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-theme-pick");
+        await Theme.setTheme(id);
+        window.GapNinja.toast(`Theme set to ${Theme.THEMES.find((t) => t.id === id).label}`);
+        renderThemePicker();
+      });
+    });
+  }
+
   // ---------- Load / render ----------
   async function render() {
+    renderThemePicker();
     let profile, resumes;
     try {
       [profile, resumes] = await Promise.all([S().profile.get(), S().resumes.list()]);

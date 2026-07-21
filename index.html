@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=44" />
+<link rel="stylesheet" href="css/style.css?v=45" />
 </head>
 <body>
 
@@ -551,6 +551,12 @@
       </div>
 
       <div class="card" style="margin-top:16px;">
+        <div class="card-title">Appearance</div>
+        <p class="hint" style="margin-top:-6px;">Pick an accent color for gapNinja — applies instantly and follows your account to any device.</p>
+        <div class="flex gap-8" id="profile-theme-picker"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
         <div class="card-title">Resume to scan</div>
         <p class="hint" style="margin-top:-6px;">Pick a saved resume and pull its skills straight into the list below instead of typing them all by hand.</p>
         <div class="field-row">
@@ -904,6 +910,11 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Theme must be the very first script — it applies your saved accent color (green/blue/purple)
+     from localStorage immediately, before anything else loads, so there's no flash of the
+     default green for anyone who's picked another theme. See js/theme.js for details. -->
+<script src="js/theme.js?v=45"></script>
+
 <!-- CDN libraries (loaded by your browser, not bundled) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -912,28 +923,28 @@
 <script src="js/invite-config.js"></script>
 <script src="js/adzuna-config.js"></script>
 <script src="js/safebrowsing-config.js"></script>
-<script type="module" src="js/firebase.js?v=44"></script>
+<script type="module" src="js/firebase.js?v=45"></script>
 
 <!-- gapNinja app -->
-<script src="js/skills-data.js?v=44"></script>
-<script src="js/matching.js?v=44"></script>
-<script src="js/templates.js?v=44"></script>
-<script src="js/scam-check.js?v=44"></script>
-<script src="js/pdf-utils.js?v=44"></script>
-<script src="js/pdf-export.js?v=44"></script>
-<script src="js/ui-resumes.js?v=44"></script>
-<script src="js/ui-companies.js?v=44"></script>
-<script src="js/ui-links.js?v=44"></script>
-<script src="js/ui-favorites.js?v=44"></script>
-<script src="js/ui-support.js?v=44"></script>
-<script src="js/ui-compare.js?v=44"></script>
-<script src="js/ui-tasks.js?v=44"></script>
-<script src="js/ui-dashboard.js?v=44"></script>
-<script src="js/ui-invite.js?v=44"></script>
-<script src="js/ui-profile.js?v=44"></script>
-<script src="js/ui-admin.js?v=44"></script>
-<script src="js/onboarding.js?v=44"></script>
-<script src="js/app.js?v=44"></script>
-<script src="js/auth-ui.js?v=44"></script>
+<script src="js/skills-data.js?v=45"></script>
+<script src="js/matching.js?v=45"></script>
+<script src="js/templates.js?v=45"></script>
+<script src="js/scam-check.js?v=45"></script>
+<script src="js/pdf-utils.js?v=45"></script>
+<script src="js/pdf-export.js?v=45"></script>
+<script src="js/ui-resumes.js?v=45"></script>
+<script src="js/ui-companies.js?v=45"></script>
+<script src="js/ui-links.js?v=45"></script>
+<script src="js/ui-favorites.js?v=45"></script>
+<script src="js/ui-support.js?v=45"></script>
+<script src="js/ui-compare.js?v=45"></script>
+<script src="js/ui-tasks.js?v=45"></script>
+<script src="js/ui-dashboard.js?v=45"></script>
+<script src="js/ui-invite.js?v=45"></script>
+<script src="js/ui-profile.js?v=45"></script>
+<script src="js/ui-admin.js?v=45"></script>
+<script src="js/onboarding.js?v=45"></script>
+<script src="js/app.js?v=45"></script>
+<script src="js/auth-ui.js?v=45"></script>
 </body>
 </html>

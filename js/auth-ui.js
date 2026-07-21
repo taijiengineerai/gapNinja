@@ -38,6 +38,11 @@
       console.error("Onboarding auto-start failed", e);
     }
 
+    // Reconcile the accent color theme with whatever's saved on the profile — js/theme.js already
+    // applied localStorage's copy the instant the page loaded, this just catches a new device/
+    // browser where that's empty but the profile has a preference from somewhere else.
+    if (window.GapNinja.Theme) window.GapNinja.Theme.syncFromProfile(profile);
+
     // Show the Admin nav item only for accounts with a doc at admins/{uid} — see firestore.rules.
     // Non-admins get a permission-denied error from Firestore even if they force this open, so
     // hiding it here is purely for a clean sidebar, not the actual access control.
