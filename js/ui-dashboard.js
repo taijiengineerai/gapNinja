@@ -4,6 +4,8 @@
     return window.GapNinja.Storage;
   }
   let currentFilter = "";
+  let currentPageSize = 20; // number, or "all"
+  let currentPage = 1; // 1-based
   let openAppId = null;
   let openAppMeta = { companyName: "", role: "" };
 
@@ -19,6 +21,22 @@
   function init() {
     document.getElementById("dashboard-status-filter").addEventListener("change", (e) => {
       currentFilter = e.target.value;
+      currentPage = 1; // changing the filter changes what "page 1" means — start over
+      render();
+    });
+    document.getElementById("dashboard-page-size").addEventListener("change", (e) => {
+      currentPageSize = e.target.value === "all" ? "all" : parseInt(e.target.value, 10);
+      currentPage = 1;
+      render();
+    });
+    document.getElementById("dashboard-page-prev").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        render();
+      }
+    });
+    document.getElementById("dashboard-page-next").addEventListener("click", () => {
+      currentPage++; // clamped inside render() against the actual page count
       render();
     });
     document.getElementById("application-modal-close-btn").addEventListener("click", closeModal);
@@ -87,16 +105,39 @@
     const filtered = currentFilter ? apps.filter((a) => a.status === currentFilter) : apps;
 
     if (apps.length === 0) {
+      document.getElementById("dashboard-pagination").style.display = "none";
       wrap.innerHTML = `<div class="empty-state">No comparisons saved yet. Head to <strong>Compare &amp; Analyze</strong> to score your first job match.</div>`;
       return;
     }
     if (filtered.length === 0) {
+      document.getElementById("dashboard-pagination").style.display = "none";
       wrap.innerHTML = `<div class="empty-state">No applications with that status.</div>`;
       return;
     }
 
+    // Paginate: "all" shows everything on one page; otherwise clamp currentPage to whatever the
+    // filtered list can actually support (e.g. after a filter change shrinks the result count).
+    const pageSize = currentPageSize === "all" ? filtered.length : currentPageSize;
+    const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+    if (currentPage > pageCount) currentPage = pageCount;
+    if (currentPage < 1) currentPage = 1;
+    const startIdx = (currentPage - 1) * pageSize;
+    const pageItems = filtered.slice(startIdx, startIdx + pageSize);
+
+    const paginationEl = document.getElementById("dashboard-pagination");
+    if (currentPageSize === "all" || pageCount <= 1) {
+      paginationEl.style.display = "none";
+    } else {
+      paginationEl.style.display = "flex";
+      const endIdx = Math.min(startIdx + pageSize, filtered.length);
+      document.getElementById("dashboard-pagination-summary").textContent =
+        `Showing ${startIdx + 1}–${endIdx} of ${filtered.length}`;
+      document.getElementById("dashboard-page-prev").disabled = currentPage <= 1;
+      document.getElementById("dashboard-page-next").disabled = currentPage >= pageCount;
+    }
+
     let html = `<table><thead><tr><th>Company</th><th>Role</th><th>Resume</th><th>Pay</th><th>Score</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>`;
-    filtered.forEach((a) => {
+    pageItems.forEach((a) => {
       html += `<tr>
         <td>${escapeHtml(a.companyName || "—")}</td>
         <td>${escapeHtml(a.role || "—")}</td>
