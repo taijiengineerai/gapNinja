@@ -4,6 +4,26 @@
     return list.slice(0, n).map((s) => s.skill.name);
   }
 
+  // Picks up to n DISTINCT gap-skill names for THIS analysis, high-priority ones first. Plain
+  // topNames() can't be used here because a naive "high-priority gaps, then all gaps" concat
+  // duplicates any high-priority skill (it appears once from the filter and again from the full
+  // list) — which could make the cover letter repeat a skill or crowd out a real, different gap
+  // from this job description. This dedupes by skill name so every name shown is unique and
+  // actually reflects the current job's gap list, not an artifact of how the list was built.
+  function topUniqueGapNames(gapList, n) {
+    const ordered = gapList.filter((g) => g.priority === "high").concat(gapList.filter((g) => g.priority !== "high"));
+    const seen = new Set();
+    const names = [];
+    for (const g of ordered) {
+      const name = g.skill.name;
+      if (seen.has(name)) continue;
+      seen.add(name);
+      names.push(name);
+      if (names.length >= n) break;
+    }
+    return names;
+  }
+
   function joinList(arr) {
     if (arr.length === 0) return "";
     if (arr.length === 1) return arr[0];
@@ -14,28 +34,32 @@
   function generateCoverLetter({ profile, role, company, analysis, resumeHighlights }) {
     const name = (profile && profile.name) || "[Your Name]";
     const matchedNames = joinList(topNames(analysis.matched, 5));
-    const gapNames = topNames(analysis.gap.filter((g) => g.priority === "high").concat(analysis.gap), 3);
+    const gapNames = topUniqueGapNames(analysis.gap, 3);
     const gapText = gapNames.length ? joinList(gapNames) : null;
     const bonusNames = joinList(topNames(analysis.bonus, 3));
     const roleText = role || "[Role Title]";
     const companyText = company || "[Company Name]";
 
+    // Every sentence below reads straight off THIS analysis (matched/gap/bonus skills computed
+    // fresh from the resume + job description text currently in the form) — nothing here is
+    // carried over from a previous comparison. Re-running Analyze Fit always regenerates this
+    // from scratch against whatever's in the form right now.
     let body = `Dear ${companyText} Hiring Team,\n\n`;
     body += `I'm excited to apply for the ${roleText} role at ${companyText}. `;
     if (matchedNames) {
-      body += `Reviewing the job description, my background lines up closely with what you're looking for — particularly my hands-on experience with ${matchedNames}. `;
+      body += `This posting calls for ${matchedNames} — skills I've used hands-on in my recent work, and exactly what I'd bring to this specific role from day one. `;
     } else {
       body += `I'm drawn to this role and believe my background makes me a strong candidate. `;
     }
-    body += `In my recent work, I've applied these skills to deliver real results, and I'm confident I can contribute from day one.\n\n`;
+    body += `I'm confident that experience translates directly to what this position requires.\n\n`;
 
     if (bonusNames) {
-      body += `Beyond the core requirements, I also bring experience in ${bonusNames}, which I hope can add extra value to your team.\n\n`;
+      body += `Beyond what the posting asks for, I also bring experience in ${bonusNames}, which I hope adds extra value to your team.\n\n`;
     }
 
     if (gapText) {
-      body += `I'll be upfront: I'm still building deeper hands-on experience with ${gapText}. `;
-      body += `I've already started closing that gap — I learn quickly, and I see this role as a great opportunity to grow those skills in a real-world setting while contributing everything else I bring on day one.\n\n`;
+      body += `I'll be upfront about where I'm still building depth: this role's requirements around ${gapText} are an area I'm actively growing in, rather than years of hands-on experience. `;
+      body += `I learn quickly, and I see this position as a strong opportunity to close that specific gap on the job while contributing everything else outlined above from day one.\n\n`;
     }
 
     body += `I'd welcome the chance to talk about how I can help ${companyText} succeed. Thank you for considering my application — I look forward to hearing from you.\n\n`;
