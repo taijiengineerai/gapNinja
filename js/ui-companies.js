@@ -40,6 +40,14 @@
       currentPage++; // clamped inside renderList() against the actual page count
       renderList();
     });
+    document.getElementById("history-preview-close-btn").addEventListener("click", closeHistoryPreview);
+    document.getElementById("history-preview-close-btn-2").addEventListener("click", closeHistoryPreview);
+    document.getElementById("history-preview-open-full-btn").addEventListener("click", () => {
+      if (!previewAppId) return;
+      const id = previewAppId;
+      closeHistoryPreview();
+      window.GapNinja.UiDashboard.openModal(id);
+    });
   }
 
   async function openModal(id) {
@@ -361,9 +369,41 @@
     wrap.querySelectorAll("[data-toggle-history]").forEach((btn) =>
       btn.addEventListener("click", () => toggleHistory(btn.getAttribute("data-toggle-history")))
     );
-    wrap.querySelectorAll("[data-view-history-app]").forEach((btn) =>
-      btn.addEventListener("click", () => window.GapNinja.UiDashboard.openModal(btn.getAttribute("data-view-history-app")))
+    wrap.querySelectorAll("[data-preview-app]").forEach((btn) =>
+      btn.addEventListener("click", () => openHistoryPreview(btn.getAttribute("data-preview-app")))
     );
+  }
+
+  // ---- Comparison history preview modal ----
+  // A quick look at one saved comparison (score, matched/gap skills, compensation, JD snippet)
+  // without pulling up the full application modal — that one has the cover letter, follow-up
+  // email, and edit/delete controls, which is more than you usually need just to remember
+  // "how'd this one score again?" while skimming a company's history. "Open full analysis" from
+  // here defers to js/ui-dashboard.js's existing modal for everything else.
+  let previewAppId = null;
+
+  function openHistoryPreview(appId) {
+    const a = (cachedApps || []).find((app) => app.id === appId);
+    if (!a) return;
+    previewAppId = appId;
+
+    document.getElementById("history-preview-title").textContent = `${a.role || "Role"} — ${a.companyName || ""}`;
+    document.getElementById("history-preview-meta").textContent =
+      `Resume: ${a.resumeLabel || "—"} · Match score: ${a.matchScore != null ? a.matchScore + "%" : "—"} · Saved ${a.createdAt ? formatTimestamp(a.createdAt) : "—"}`;
+    document.getElementById("history-preview-compensation").textContent = a.compensation ? `Compensation: ${a.compensation}` : "";
+
+    document.getElementById("history-preview-matched").innerHTML =
+      (a.matchedSkills || []).map((s) => `<span class="badge badge-matched">✓ ${escapeHtml(s)}</span>`).join("") || `<span class="muted">None</span>`;
+    document.getElementById("history-preview-gap").innerHTML =
+      (a.gapSkills || []).map((s) => `<span class="badge badge-gap">${escapeHtml(s)}</span>`).join("") || `<span class="muted">None</span>`;
+    document.getElementById("history-preview-jd").textContent = a.jdText || "(No job description text was saved for this comparison.)";
+
+    document.getElementById("history-preview-modal").classList.add("open");
+  }
+
+  function closeHistoryPreview() {
+    document.getElementById("history-preview-modal").classList.remove("open");
+    previewAppId = null;
   }
 
   function renderHistoryToggle(companyId, relatedApps) {
@@ -387,7 +427,7 @@
             <span class="job-match-badge ${matchClass(a.matchScore)}">${a.matchScore != null ? a.matchScore + "%" : "—"}</span>
           </div>
           ${snippet ? `<div class="hint" style="margin-top:4px;">${snippet}</div>` : `<div class="hint" style="margin-top:4px;">No job description text saved for this one.</div>`}
-          <button class="btn btn-secondary btn-sm" type="button" data-view-history-app="${a.id}" style="margin-top:6px;">View full analysis</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-preview-app="${a.id}" style="margin-top:6px;">Preview</button>
         </div>`;
       })
       .join("");

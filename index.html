@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=41" />
+<link rel="stylesheet" href="css/style.css?v=42" />
 </head>
 <body>
 
@@ -784,6 +784,39 @@
   </div>
 </div>
 
+<!-- Comparison history preview modal — a quick look (score, matched/gap skills, compensation,
+     JD snippet) opened from a company's history list in the Companies view, without pulling up
+     the full application modal (cover letter, email, etc.). "Open full analysis" from here opens
+     that full modal instead. -->
+<div class="modal-overlay" id="history-preview-modal">
+  <div class="modal" style="width:520px; max-width:95vw; max-height:85vh; overflow-y:auto;">
+    <div class="flex-between">
+      <div class="card-title" id="history-preview-title" style="margin:0;">Comparison</div>
+      <button class="icon-btn" id="history-preview-close-btn">✕</button>
+    </div>
+    <div class="hint" id="history-preview-meta" style="margin:2px 0 14px 0;"></div>
+    <div id="history-preview-compensation" class="hint" style="margin-bottom:10px;"></div>
+
+    <div class="field">
+      <label>Matched skills</label>
+      <div class="chip-row" id="history-preview-matched"></div>
+    </div>
+    <div class="field">
+      <label>Gap skills</label>
+      <div class="chip-row" id="history-preview-gap"></div>
+    </div>
+    <div class="field">
+      <label>Job description</label>
+      <div class="hint" id="history-preview-jd" style="white-space:pre-wrap;"></div>
+    </div>
+
+    <div class="flex gap-8" style="justify-content:flex-end; margin-top:6px;">
+      <button class="btn btn-secondary" id="history-preview-close-btn-2">Close</button>
+      <button class="btn btn-primary" id="history-preview-open-full-btn">Open full analysis</button>
+    </div>
+  </div>
+</div>
+
 <!-- Favorite company modal — shared by the Favorites view, Compare & Analyze results, and Job Queue rows -->
 <div class="modal-overlay" id="favorite-modal">
   <div class="modal" style="width:460px; max-width:95vw;">
@@ -879,28 +912,28 @@
 <script src="js/invite-config.js"></script>
 <script src="js/adzuna-config.js"></script>
 <script src="js/safebrowsing-config.js"></script>
-<script type="module" src="js/firebase.js?v=41"></script>
+<script type="module" src="js/firebase.js?v=42"></script>
 
 <!-- gapNinja app -->
-<script src="js/skills-data.js?v=41"></script>
-<script src="js/matching.js?v=41"></script>
-<script src="js/templates.js?v=41"></script>
-<script src="js/scam-check.js?v=41"></script>
-<script src="js/pdf-utils.js?v=41"></script>
-<script src="js/pdf-export.js?v=41"></script>
-<script src="js/ui-resumes.js?v=41"></script>
-<script src="js/ui-companies.js?v=41"></script>
-<script src="js/ui-links.js?v=41"></script>
-<script src="js/ui-favorites.js?v=41"></script>
-<script src="js/ui-support.js?v=41"></script>
-<script src="js/ui-compare.js?v=41"></script>
-<script src="js/ui-tasks.js?v=41"></script>
-<script src="js/ui-dashboard.js?v=41"></script>
-<script src="js/ui-invite.js?v=41"></script>
-<script src="js/ui-profile.js?v=41"></script>
-<script src="js/ui-admin.js?v=41"></script>
-<script src="js/onboarding.js?v=41"></script>
-<script src="js/app.js?v=41"></script>
-<script src="js/auth-ui.js?v=41"></script>
+<script src="js/skills-data.js?v=42"></script>
+<script src="js/matching.js?v=42"></script>
+<script src="js/templates.js?v=42"></script>
+<script src="js/scam-check.js?v=42"></script>
+<script src="js/pdf-utils.js?v=42"></script>
+<script src="js/pdf-export.js?v=42"></script>
+<script src="js/ui-resumes.js?v=42"></script>
+<script src="js/ui-companies.js?v=42"></script>
+<script src="js/ui-links.js?v=42"></script>
+<script src="js/ui-favorites.js?v=42"></script>
+<script src="js/ui-support.js?v=42"></script>
+<script src="js/ui-compare.js?v=42"></script>
+<script src="js/ui-tasks.js?v=42"></script>
+<script src="js/ui-dashboard.js?v=42"></script>
+<script src="js/ui-invite.js?v=42"></script>
+<script src="js/ui-profile.js?v=42"></script>
+<script src="js/ui-admin.js?v=42"></script>
+<script src="js/onboarding.js?v=42"></script>
+<script src="js/app.js?v=42"></script>
+<script src="js/auth-ui.js?v=42"></script>
 </body>
 </html>
