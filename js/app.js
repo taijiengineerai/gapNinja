@@ -75,6 +75,9 @@
   window.GapNinja.wireGapSkillChips = wireGapSkillChips;
 
   // ---- Nav / routing ----
+  // Adding a new nav item/view? Also add a step for it in js/onboarding.js's STEPS array (see
+  // the MAINTENANCE note at the top of that file) — the guided tour should never fall behind
+  // what's actually in the sidebar.
   function showView(name) {
     document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
     document.querySelectorAll(".nav-item[data-view]").forEach((n) => n.classList.remove("active"));

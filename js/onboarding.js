@@ -1,7 +1,20 @@
 /* gapNinja — interactive guided tour. Auto-shows once per account (tracked on the profile doc
    as onboardingSeen), and can be replayed anytime via the "Help / Tour" button in the sidebar.
    No external library — a small overlay + tooltip built from the same inline-style conventions
-   used elsewhere in this app (see js/scam-check.js UI code for the same pattern). */
+   used elsewhere in this app (see js/scam-check.js UI code for the same pattern).
+
+   MAINTENANCE — keep this in sync with the app, every time:
+   - New nav item / view added → add a STEPS entry here targeting its selector (usually
+     '[data-view="yourview"]'), in the same order it appears in the sidebar.
+   - Major new capability added to an EXISTING view (e.g. the scam-risk check, sort options,
+     PDF preview) → update that step's `body` text to mention it, rather than leaving the
+     tour describing an older, thinner version of the feature.
+   - View removed/renamed → remove or update its STEPS entry so the tour never points at a
+     dead element.
+   - Whenever STEPS changes length, update the "N steps" count in the welcome step's body below.
+   This file is the one place a person actually reads to learn the app, so it drifting out of
+   date is worse than not having a tour at all — treat it as part of shipping the feature, not
+   a follow-up task. */
 (function () {
   const MOBILE_BREAKPOINT = 860;
 
@@ -9,7 +22,7 @@
   const STEPS = [
     {
       title: "Welcome to gapNinja 👋",
-      body: "A quick tour of the main features — seven steps, skip anytime with the link below.",
+      body: "A quick tour of the main features — eight steps, skip anytime with the link below.",
     },
     {
       selector: '[data-view="dashboard"]',
@@ -40,6 +53,11 @@
       selector: '[data-view="links"]',
       title: "My Links",
       body: "Save your LinkedIn, portfolio, GitHub, or any other link you paste often — as many as you want, each one copyable with a click.",
+    },
+    {
+      selector: '[data-view="support"]',
+      title: "Support",
+      body: "Stuck, or found a bug? Send it here — you'll see the status and any reply right on this page.",
     },
     {
       selector: "#nav-profile",
