@@ -78,6 +78,7 @@ This is the one-time setup that gives gapNinja real Google sign-in and a private
   - suggested learning resources for each gap skill
   - a drafted, editable cover letter that leads with your strengths and frames the gaps honestly
   - a drafted, editable follow-up email
+  - a "Check for scam risk" button (`js/scam-check.js`) that scans the link and description for common job-scam red flags — upfront fees, wire transfers, gift cards, crypto payments, no-interview-required, link shorteners/IP-address links, and more. It's pattern-matching, not a fraud database, so treat a "low risk" result as one signal among many, not a guarantee — always verify a company independently before sharing personal info or paying anything to apply.
 - **Resumes** — upload PDF resumes (parsed client-side for skills and section content), keep multiple labeled versions, and delete any you no longer need.
 - **Job Queue** — paste job links as you find them, then run them through Compare & Analyze when you're ready.
 - **Dashboard** — every comparison you've saved, with status (not applied / ready / applied / interviewing / offer / rejected), match score, notes, and the full cover letter/email, all editable.
@@ -197,6 +198,7 @@ js/firebase.js            Firebase Auth (Google + email/password, password reset
 js/auth-ui.js              Shows the landing page or the app based on sign-in state
 js/skills-data.js         Skills dictionary + learning-resource links
 js/matching.js             Skill extraction & gap-scoring engine
+js/scam-check.js           Heuristic job-scam red-flag scanner for Compare & Analyze
 js/templates.js            Cover letter, follow-up email, and Skills Summary generation
 js/pdf-utils.js            PDF text extraction (pdf.js wrapper)
 js/pdf-export.js            Plain-text-to-PDF export (jsPDF wrapper), used for cover letters and Skills Summaries

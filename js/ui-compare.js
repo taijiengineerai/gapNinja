@@ -12,6 +12,7 @@
     document.getElementById("compare-analyze-btn").addEventListener("click", runAnalysis);
     document.getElementById("compare-jd").addEventListener("blur", autoFillCompensation);
     document.getElementById("compare-url").addEventListener("blur", maybeAutoFetchOnBlur);
+    document.getElementById("compare-scamcheck-btn").addEventListener("click", runScamCheck);
 
     // If a result is already showing and the user edits any input it was built from, the old
     // result (and its "Save to Dashboard" button, wired to the old data) is no longer valid for
@@ -22,6 +23,56 @@
       const evt = el.tagName === "SELECT" ? "change" : "input";
       el.addEventListener(evt, invalidateStaleResults);
     });
+
+    // The scam-risk result reflects a specific link + description snapshot — if either changes,
+    // clear it so an old "looks safe" result can't linger next to an edited (and now unchecked) link.
+    ["compare-url", "compare-jd"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", clearScamCheckResult);
+    });
+  }
+
+  function runScamCheck() {
+    const url = document.getElementById("compare-url").value.trim();
+    const jdText = document.getElementById("compare-jd").value.trim();
+    if (!url && !jdText) {
+      window.GapNinja.toast("Add a job link or paste the description first");
+      return;
+    }
+    const result = window.GapNinja.ScamCheck.analyze(url, jdText);
+    renderScamCheckResult(result);
+  }
+
+  function clearScamCheckResult() {
+    document.getElementById("compare-scamcheck-result").innerHTML = "";
+  }
+
+  function renderScamCheckResult(result) {
+    const el = document.getElementById("compare-scamcheck-result");
+    const meta = {
+      low: { color: "var(--neon)", label: "Low risk" },
+      medium: { color: "var(--amber)", label: "Medium risk — review carefully" },
+      high: { color: "var(--red)", label: "High risk — proceed with caution" },
+    }[result.level];
+
+    let html = `<div style="border:1px solid ${meta.color}; border-radius:8px; padding:10px 12px; margin-top:8px;">
+      <div style="font-weight:600; color:${meta.color};">${escapeHtml(meta.label)}</div>`;
+
+    if (result.flags.length) {
+      html += `<ul style="margin:6px 0 0; padding-left:18px; font-size:12.5px; color:var(--text-dim);">`;
+      result.flags.forEach((f) => {
+        html += `<li>${escapeHtml(f.label)}</li>`;
+      });
+      html += `</ul>`;
+    } else {
+      html += `<div class="hint" style="margin-top:4px;">No common scam red flags detected in what you've entered.</div>`;
+    }
+
+    if (!result.checkedText) {
+      html += `<div class="hint" style="margin-top:6px;">Paste the job description text too for a fuller check — right now this only scanned the link.</div>`;
+    }
+    html += `<div class="hint" style="margin-top:6px;">This is a pattern-based check, not a guarantee — always verify the company independently before sharing personal info or paying anything to apply.</div>`;
+    html += `</div>`;
+    el.innerHTML = html;
   }
 
   function invalidateStaleResults() {
@@ -61,6 +112,7 @@
     document.getElementById("compare-compensation-hint").style.color = "";
     originTaskId = taskId || null;
     resetResultsPanel();
+    clearScamCheckResult();
     // Arriving with a link already in hand — go ahead and try fetching it right away instead of
     // waiting for the field to be blurred.
     if (url && url.trim()) {
@@ -156,6 +208,7 @@
     document.getElementById("compare-compensation-hint").style.color = "";
     lastAutoFetchedUrl = "";
     resetResultsPanel();
+    clearScamCheckResult();
   }
 
   function resetResultsPanel() {
