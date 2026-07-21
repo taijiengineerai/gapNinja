@@ -24,80 +24,39 @@
     return names;
   }
 
-  // Look up a free-typed profile skill string against the curated taxonomy (js/skills-data.js) by
-  // name or alias, case-insensitively, so we can read its category. Returns null if it's not a
-  // recognized taxonomy skill (still usable — see relatedProfileSkillNames below).
-  function findTaxonomySkill(name) {
-    const list = (global.GapNinja.SkillsData && global.GapNinja.SkillsData.SKILLS) || [];
-    const lower = (name || "").trim().toLowerCase();
-    if (!lower) return null;
-    return (
-      list.find(
-        (s) => s.name.toLowerCase() === lower || s.aliases.some((a) => a.trim().toLowerCase() === lower)
-      ) || null
-    );
-  }
-
-  // Picks up to n skills FROM YOUR PROFILE (profile.skills, as you typed them in) for the "beyond
-  // what the posting asks for" line — this is the actual source of truth for what you know,
-  // rather than analysis.bonus, which only ever contains skills matched from the curated taxonomy
-  // against the resume's raw text and can easily come up with just one (or zero) entries even
-  // when your profile lists several relevant extras.
+  // Picks up to n skills straight from THE RESUME you're comparing against (analysis.resumeSkills
+  // — every taxonomy skill found in that resume's actual text, per js/matching.js), for the
+  // "beyond what the posting asks for" line. This is deliberately sourced from the resume itself
+  // rather than the Profile page's typed-in skills list, since that list may be sparse, stale, or
+  // just not what the user means by "the resume I compare to."
   //
-  // Ranked by relatedness to THIS job, highest first:
-  //   2 = matches a taxonomy skill in the same category as something the JD asks about (matched/gap)
-  //   1 = the skill name literally appears in the JD text (covers real skills not in our taxonomy,
-  //       e.g. a specific tool or niche the posting names that we don't have curated)
-  //   0 = no detected connection to this posting
-  // Ties keep the order you listed them in your profile. Already-mentioned matched skills are
-  // excluded so this sentence never repeats the earlier "this posting calls for X" line. Falls
-  // back to analysis.bonus if your profile has no skills listed at all.
-  function relatedProfileSkillNames(profile, analysis, jdText, n) {
+  // Already-mentioned matched skills are excluded first (resumeSkills = matched ∪ bonus, so this
+  // reduces to the resume's skills the JD doesn't ask about) so this sentence never repeats the
+  // earlier "this posting calls for X" line. What's left is ranked with same-category-as-the-JD
+  // skills first (highest relevance), but relatedness only affects ORDER, not whether a skill is
+  // included — if the resume has fewer than n extra skills, whatever it has is used, in order of
+  // how often it appears in that resume.
+  function topResumeSkillNames(analysis, n) {
     const matchedLower = new Set(analysis.matched.map((s) => s.skill.name.toLowerCase()));
     const jdCategories = new Set(analysis.matched.concat(analysis.gap).map((s) => s.skill.category));
-    const jdTextLower = (jdText || "").toLowerCase();
 
-    const profileSkills = ((profile && profile.skills) || []).map((s) => (s || "").trim()).filter(Boolean);
-    const candidates = profileSkills.filter((name) => !matchedLower.has(name.toLowerCase()));
-
-    if (candidates.length === 0) {
-      return relatedBonusNames(analysis, n);
-    }
-
-    const scored = candidates.map((name) => {
-      const taxonomySkill = findTaxonomySkill(name);
-      let score = 0;
-      if (taxonomySkill && jdCategories.has(taxonomySkill.category)) score = 2;
-      else if (jdTextLower && jdTextLower.includes(name.toLowerCase())) score = 1;
-      return { name, score };
+    const candidates = (analysis.resumeSkills || []).filter((s) => !matchedLower.has(s.skill.name.toLowerCase()));
+    const ranked = candidates.slice().sort((a, b) => {
+      const aRelated = jdCategories.has(a.skill.category) ? 1 : 0;
+      const bRelated = jdCategories.has(b.skill.category) ? 1 : 0;
+      return bRelated - aRelated; // stable — ties keep the resume's own count-desc order
     });
 
-    scored.sort((a, b) => b.score - a.score); // stable — ties keep profile order
-
-    // Dedup case-insensitively in case the profile list has near-duplicates.
     const seen = new Set();
     const names = [];
-    for (const s of scored) {
-      const key = s.name.toLowerCase();
+    for (const s of ranked) {
+      const key = s.skill.name.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
-      names.push(s.name);
+      names.push(s.skill.name);
       if (names.length >= n) break;
     }
     return names;
-  }
-
-  // Fallback used only when the profile has no skills listed at all: picks bonus skills (taxonomy
-  // matches from the resume text that the JD doesn't ask for), preferring ones in the same
-  // category as what the job asks about.
-  function relatedBonusNames(analysis, n) {
-    const jdCategories = new Set(analysis.matched.concat(analysis.gap).map((s) => s.skill.category));
-    const ranked = analysis.bonus.slice().sort((a, b) => {
-      const aRelated = jdCategories.has(a.skill.category) ? 1 : 0;
-      const bRelated = jdCategories.has(b.skill.category) ? 1 : 0;
-      return bRelated - aRelated; // stable sort — ties keep their original (resume-count) order
-    });
-    return ranked.slice(0, n).map((s) => s.skill.name);
   }
 
   function joinList(arr) {
@@ -107,12 +66,12 @@
     return arr.slice(0, -1).join(", ") + ", and " + arr[arr.length - 1];
   }
 
-  function generateCoverLetter({ profile, role, company, analysis, jdText, resumeHighlights }) {
+  function generateCoverLetter({ profile, role, company, analysis, resumeHighlights }) {
     const name = (profile && profile.name) || "[Your Name]";
     const matchedNames = joinList(topNames(analysis.matched, 5));
     const gapNames = topUniqueGapNames(analysis.gap, 3);
     const gapText = gapNames.length ? joinList(gapNames) : null;
-    const bonusNames = joinList(relatedProfileSkillNames(profile, analysis, jdText, 3));
+    const bonusNames = joinList(topResumeSkillNames(analysis, 5));
     const roleText = role || "[Role Title]";
     const companyText = company || "[Company Name]";
 

@@ -58,6 +58,7 @@
       matched,
       gap: gapPrioritized,
       bonus,
+      resumeSkills, // full extracted skill list for THIS resume (matched ∪ bonus), sorted by resume mention count — used by templates.js to draw "beyond the posting" skills straight from the resume being compared, not the Profile page
       resumeSkillCount: resumeSkills.length,
       jdSkillCount: jdSkills.length,
     };
