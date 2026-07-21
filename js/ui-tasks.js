@@ -116,11 +116,13 @@
           <td>
             <a class="btn btn-secondary btn-sm" href="${escapeHtml(t.link)}" target="_blank" rel="noopener" title="${escapeHtml(t.link)}">Open posting ↗</a>
             <div class="hint mono" style="margin-top:4px; word-break:break-all;">${escapeHtml(hostnameOf(t.link))}</div>
+            <div id="task-risk-${t.id}"></div>
           </td>
           <td class="muted">${escapeHtml(t.note || "—")}</td>
           <td><span class="badge badge-status status-${t.status === "applied" ? "applied" : t.status === "analyzed" ? "ready" : "not_applied"}">${STATUS_LABEL[t.status] || t.status}</span></td>
           <td class="flex gap-8">
             <button class="btn btn-secondary btn-sm" data-analyze="${t.id}">Analyze this job</button>
+            <button class="btn btn-secondary btn-sm" data-riskcheck="${t.id}">Check risk</button>
             <button class="btn btn-secondary btn-sm" data-edit="${t.id}">Edit</button>
             <button class="btn btn-danger btn-sm" data-del="${t.id}">Remove</button>
           </td>
@@ -134,6 +136,82 @@
     wrap.querySelectorAll("[data-edit]").forEach((btn) => btn.addEventListener("click", () => startEdit(btn.getAttribute("data-edit"))));
     wrap.querySelectorAll("[data-cancel]").forEach((btn) => btn.addEventListener("click", cancelEdit));
     wrap.querySelectorAll("[data-save]").forEach((btn) => btn.addEventListener("click", () => saveEdit(btn.getAttribute("data-save"), btn)));
+    wrap.querySelectorAll("[data-riskcheck]").forEach((btn) => {
+      const task = tasks.find((x) => x.id === btn.getAttribute("data-riskcheck"));
+      if (task) btn.addEventListener("click", () => checkTaskRisk(task));
+    });
+  }
+
+  // Per-row scam-risk check, reusing the same heuristics + Safe Browsing lookup as Compare &
+  // Analyze (js/scam-check.js) — but link-only, since a queued job has no description text or
+  // company name yet. requestIds guards each row's async Safe Browsing response against a second
+  // click (or a re-render) making it stale.
+  const riskRequestIds = {};
+
+  function checkTaskRisk(task) {
+    const container = document.getElementById(`task-risk-${task.id}`);
+    if (!container) return;
+    const requestId = (riskRequestIds[task.id] = (riskRequestIds[task.id] || 0) + 1);
+    const result = window.GapNinja.ScamCheck.analyze(task.link, "", "");
+    renderTaskRiskResult(container, result, !!task.link);
+    if (task.link) {
+      window.GapNinja.ScamCheck.checkSafeBrowsing(task.link).then((sb) => {
+        if (riskRequestIds[task.id] !== requestId) return;
+        renderTaskSafeBrowsingStatus(container, sb);
+      });
+    }
+  }
+
+  function renderTaskRiskResult(container, result, checkingSafeBrowsing) {
+    const meta = {
+      low: { color: "var(--neon)", label: "Low risk" },
+      medium: { color: "var(--amber)", label: "Medium risk — review carefully" },
+      high: { color: "var(--red)", label: "High risk — proceed with caution" },
+    }[result.level];
+
+    let html = `<div class="risk-box" style="border:1px solid ${meta.color}; border-radius:8px; padding:8px 10px; margin-top:6px; max-width:360px;">
+      <div class="risk-label" style="font-weight:600; font-size:12.5px; color:${meta.color};">${escapeHtml(meta.label)}</div>`;
+    if (result.flags.length) {
+      html += `<ul style="margin:5px 0 0; padding-left:16px; font-size:11.5px; color:var(--text-dim);">`;
+      result.flags.forEach((f) => {
+        html += `<li>${escapeHtml(f.label)}</li>`;
+      });
+      html += `</ul>`;
+    } else {
+      html += `<div class="hint" style="margin-top:4px; font-size:11.5px;">No common scam red flags detected in the link.</div>`;
+    }
+    html += `<div class="hint" style="margin-top:4px; font-size:11px;">Only the link is scanned here — paste the description into Compare & Analyze for a fuller check.</div>`;
+    if (checkingSafeBrowsing) {
+      html += `<div class="hint risk-sb" style="margin-top:4px; font-size:11.5px;">Checking against Google Safe Browsing…</div>`;
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+  }
+
+  function renderTaskSafeBrowsingStatus(container, sb) {
+    const sbEl = container.querySelector(".risk-sb");
+    if (!sbEl) return;
+    if (!sb.configured) {
+      sbEl.textContent = "Add a free Safe Browsing API key for a live blocklist check too — see README.md, \"Job-scam link check (Safe Browsing)\".";
+      return;
+    }
+    if (sb.error) {
+      sbEl.textContent = "Couldn't reach Google Safe Browsing to check this link — pattern check above still applies.";
+      return;
+    }
+    if (sb.matched) {
+      sbEl.innerHTML = `⚠ <strong>Flagged by Google Safe Browsing</strong> for ${escapeHtml(sb.threatTypes.join(", ") || "a known threat")}.`;
+      sbEl.style.color = "var(--red)";
+      const box = container.querySelector(".risk-box");
+      const label = container.querySelector(".risk-label");
+      if (box) box.style.borderColor = "var(--red)";
+      if (label) {
+        label.style.color = "var(--red)";
+        label.textContent = "High risk — proceed with caution";
+      }
+    } else {
+      sbEl.textContent = "Checked against Google Safe Browsing — this link isn't on their known phishing/malware list.";
+    }
   }
 
   function hostnameOf(url) {
