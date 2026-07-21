@@ -201,6 +201,7 @@ if (!isConfigured) {
     companies: companiesApi,
     applications: makeCollectionApi("applications"),
     tasks: makeCollectionApi("tasks"),
+    links: makeCollectionApi("links"),
     summaries: makeCollectionApi("summaries"),
     supportTickets: supportTicketsApi,
     profile: {

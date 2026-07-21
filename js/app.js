@@ -88,6 +88,7 @@
     if (name === "dashboard") window.GapNinja.UiDashboard.render();
     if (name === "resumes") window.GapNinja.UiResumes.render();
     if (name === "companies") window.GapNinja.UiCompanies.render();
+    if (name === "links") window.GapNinja.UiLinks.render();
     if (name === "support") window.GapNinja.UiSupport.render();
     if (name === "tasks") window.GapNinja.UiTasks.render();
     if (name === "compare") window.GapNinja.UiCompare.render();
@@ -138,6 +139,7 @@
     window.GapNinja.UiCompare.init();
     window.GapNinja.UiResumes.init();
     window.GapNinja.UiCompanies.init();
+    window.GapNinja.UiLinks.init();
     window.GapNinja.UiSupport.init();
     window.GapNinja.UiTasks.init();
     window.GapNinja.UiInvite.init();

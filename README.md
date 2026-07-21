@@ -84,6 +84,7 @@ This is the one-time setup that gives gapNinja real Google sign-in and a private
 - **Job Queue** — paste job links as you find them, then run them through Compare & Analyze when you're ready. Each queued link also has its own **Check risk** button — same scam-check engine as Compare & Analyze, scanning just the link (and Safe Browsing, if configured) since there's no description text yet at this stage.
 - **Dashboard** — every comparison you've saved, with status (not applied / ready / applied / interviewing / offer / rejected), match score, notes, and the full cover letter/email, all editable.
 - **Companies** — auto-created from your comparisons, or add manually; track website, contact email/phone, LinkedIn, and notes per company. Given a website, "Auto-fill contact info from website" tries to fetch the page and pattern-matches for an email, phone number, and LinkedIn company link — no AI API, just regex, and it's best-effort since most company sites block cross-origin fetches from a browser. Anything it can't find (which is often) just stays blank for you to fill in.
+- **My Links** — save an unlimited list of personal links (LinkedIn, portfolio, GitHub, anything you paste often) with an optional label per link. Each one has a one-click **Copy** button, plus inline edit and delete.
 - **Invite a friend** — email-only, one person at a time, no public link and no social sharing. Click "Invite a friend" in the sidebar, enter their email and an optional note. By default this opens your own email app with the invite pre-written, ready to send — free, no setup. If you deploy the optional Cloud Function (below), you get a second "Send invite" button that emails them directly, no email app required.
 - **My Profile** — a full page for everything about you beyond a single resume: pick a saved resume and pull its skills in with one click, add more skills manually, list your experience, and write a short bio and hobbies. Set your job search preferences (keywords, location, country, and how recently a job must have been posted — 1 to 90 days) and click **Fetch matching jobs** to pull live listings from the internet (via the Adzuna API — see setup below), each one scored against your profile and one click away from your Job Queue. You can also paste any job description into the "Scan a job description for skill gaps" card to find skills worth adding to your profile, and generate a downloadable, editable "Skills Summary" (a cover-letter-styled writeup of your current skills/experience) with one click, keeping a history of past versions to revisit.
 - **Admin Dashboard** — hidden from every account except the ones granted admin access (see [Admin Dashboard](#admin-dashboard-optional) below). Lets an admin see every user's name/email, every saved job link and company comparison across all accounts, and export it as CSV or email it.
@@ -221,7 +222,7 @@ js/templates.js            Cover letter, follow-up email, and Skills Summary gen
 js/pdf-utils.js            PDF text extraction (pdf.js wrapper)
 js/pdf-export.js            Plain-text-to-PDF export (jsPDF wrapper), used for cover letters and Skills Summaries
 js/onboarding.js            Interactive guided tour (auto-shows once per account, replayable via the "Help / Tour" sidebar button)
-js/ui-*.js                  View logic: dashboard, compare, resumes, companies, tasks, invite, profile, admin
+js/ui-*.js                  View logic: dashboard, compare, resumes, companies, links, tasks, invite, profile, admin
 js/app.js                   Nav routing, profile modal, boot
 js/storage.js               Unused — superseded by js/firebase.js, kept only to avoid 404s
 js/ui-resume-builder.js     Unused — an earlier visual resume builder, reverted; kept only to avoid 404s
@@ -253,6 +254,7 @@ users/{uid}/applications/{id}   companyId, companyName, role, jdText, resumeId, 
                                   matchedSkills[], gapSkills[], coverLetter, emailSubject,
                                   emailBody, compensation, status, notes, appliedAt, createdAt
 users/{uid}/tasks/{id}          link, note, status, linkedApplicationId, createdAt
+users/{uid}/links/{id}          label, url, createdAt   (My Links — personal links list)
 users/{uid}/meta/profile        name, email, phone, linkedin, skills[], knowledge, experience[]
                                   (title, company, duration, description), bio, hobbies, resumeId,
                                   jobSearch (keywords, location, country, maxDaysOld),
