@@ -406,12 +406,15 @@
     previewAppId = null;
   }
 
+  // History is expanded by default now (no click needed to see it) — this button just lets you
+  // collapse it back if a company's list gets long, and its label reflects whichever state
+  // that company's list is currently in.
   function renderHistoryToggle(companyId, relatedApps) {
     if (relatedApps.length === 0) {
       return `<div class="hint">No comparisons run for this company yet.</div>`;
     }
     return `<button class="btn btn-secondary btn-sm" type="button" data-toggle-history="${companyId}" style="width:100%; justify-content:center;">
-      ${relatedApps.length} comparison${relatedApps.length === 1 ? "" : "s"} run — view history
+      ${relatedApps.length} comparison${relatedApps.length === 1 ? "" : "s"} — hide history
     </button>`;
   }
 
@@ -431,7 +434,8 @@
         </div>`;
       })
       .join("");
-    return `<div class="history-list" id="history-${companyId}" style="display:none;">${rows}</div>`;
+    // Expanded by default (no inline display:none) — toggleHistory() below hides it on request.
+    return `<div class="history-list" id="history-${companyId}" data-count="${relatedApps.length}">${rows}</div>`;
   }
 
   function matchClass(score) {
@@ -444,8 +448,14 @@
   function toggleHistory(companyId) {
     const el = document.getElementById("history-" + companyId);
     if (!el) return;
-    const showing = el.style.display !== "none";
+    const showing = el.style.display !== "none"; // no inline style yet = expanded (default state)
     el.style.display = showing ? "none" : "block";
+
+    const btn = document.querySelector(`[data-toggle-history="${companyId}"]`);
+    if (btn) {
+      const count = parseInt(el.getAttribute("data-count"), 10) || 0;
+      btn.textContent = `${count} comparison${count === 1 ? "" : "s"} — ${showing ? "show" : "hide"} history`;
+    }
   }
 
   // Full date + time + timezone abbreviation (EST, CST, PDT, etc.) — whichever timezone the
