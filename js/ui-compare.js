@@ -301,7 +301,7 @@
       const analysis = window.GapNinja.Matching.analyze(resume.rawText, jdText);
       const profile = await S().profile.get();
 
-      const coverLetter = window.GapNinja.Templates.generateCoverLetter({ profile, role, company, analysis });
+      const coverLetter = window.GapNinja.Templates.generateCoverLetter({ profile, role, company, analysis, jdText });
       const email = window.GapNinja.Templates.generateFollowUpEmail({ profile, role, company, appliedDate: new Date().toISOString(), analysis });
 
       lastAnalysis = { company, role, url, jdText, resumeId, resumeLabel: resume.label, compensation, analysis, coverLetter, email };
