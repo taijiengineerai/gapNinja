@@ -71,6 +71,7 @@ This is the one-time setup that gives gapNinja real Google sign-in and a private
 ## What it does
 
 - **Sign in with Google, or email/password** — real Firebase Authentication. Your resumes, companies, applications, and profile are stored in Firestore under your account only; no one else can read them, enforced by the security rule above (not just app logic). Password accounts use Firebase's built-in secure hashing (nothing is ever stored or handled as plain text), and a "Forgot password?" link on the sign-in form emails a reset link via Firebase.
+- **Guided tour** (`js/onboarding.js`) — a short interactive walkthrough (highlighted tooltips pointing at Dashboard, Compare & Analyze, Job Queue, Resumes, Companies, and Profile) shows automatically the first time any account signs in, tracked with an `onboardingSeen` flag on the profile doc so it never auto-shows twice. Click **Help / Tour** in the sidebar anytime to replay it.
 - **Resumes** — upload PDF resumes. Text is extracted right in your browser (via pdf.js) and scanned against a built-in library of ~100 skills. Keep multiple versions (e.g. one general, one backend-focused) and pick which to use per comparison. The original PDF is also saved to Cloud Storage (private to your account, same per-user isolation as Firestore) so you can click **View** on any saved version to see the actual file rendered, not just its extracted text.
 - **Compare & Analyze** — pick a resume, enter the company/role, paste a job description (or try auto-fetching from a link — most job sites block this, so pasting is the reliable path). You get:
   - a match score
@@ -219,6 +220,7 @@ js/safebrowsing-config.example.js  Tracked template, blank on purpose — copy t
 js/templates.js            Cover letter, follow-up email, and Skills Summary generation
 js/pdf-utils.js            PDF text extraction (pdf.js wrapper)
 js/pdf-export.js            Plain-text-to-PDF export (jsPDF wrapper), used for cover letters and Skills Summaries
+js/onboarding.js            Interactive guided tour (auto-shows once per account, replayable via the "Help / Tour" sidebar button)
 js/ui-*.js                  View logic: dashboard, compare, resumes, companies, tasks, invite, profile, admin
 js/app.js                   Nav routing, profile modal, boot
 js/storage.js               Unused — superseded by js/firebase.js, kept only to avoid 404s
@@ -253,7 +255,8 @@ users/{uid}/applications/{id}   companyId, companyName, role, jdText, resumeId, 
 users/{uid}/tasks/{id}          link, note, status, linkedApplicationId, createdAt
 users/{uid}/meta/profile        name, email, phone, linkedin, skills[], knowledge, experience[]
                                   (title, company, duration, description), bio, hobbies, resumeId,
-                                  jobSearch (keywords, location, country, maxDaysOld)
+                                  jobSearch (keywords, location, country, maxDaysOld),
+                                  onboardingSeen (true once the guided tour has auto-shown once)
 users/{uid}/summaries/{id}      title, text, createdAt   (saved "Skills Summary" history, from Profile)
 users/{uid}/supportTickets/{id} ticketNumber (sequential, starts at 1001 — shown in the UI as
                                   "#GN-1001"), name, email, subject, message, screenshot (a resized

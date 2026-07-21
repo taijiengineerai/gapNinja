@@ -19,14 +19,23 @@
     updateUserChip(user);
 
     // First sign-in: seed the profile with Google's name/email if we don't have one yet.
+    let profile = null;
     try {
-      const profile = await window.GapNinja.Storage.profile.get();
+      profile = await window.GapNinja.Storage.profile.get();
       let changed = false;
       if (!profile.name && user.displayName) { profile.name = user.displayName; changed = true; }
       if (!profile.email && user.email) { profile.email = user.email; changed = true; }
       if (changed) await window.GapNinja.Storage.profile.save(profile);
     } catch (e) {
       console.error("Profile seed failed", e);
+    }
+
+    // Auto-show the guided tour once per account (tracked as onboardingSeen on the profile doc)
+    // — see js/onboarding.js. Anyone can replay it later via the "Help / Tour" sidebar button.
+    try {
+      if (window.GapNinja.Onboarding) await window.GapNinja.Onboarding.maybeAutoStart(profile);
+    } catch (e) {
+      console.error("Onboarding auto-start failed", e);
     }
 
     // Show the Admin nav item only for accounts with a doc at admins/{uid} — see firestore.rules.

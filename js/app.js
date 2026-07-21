@@ -143,6 +143,7 @@
     window.GapNinja.UiInvite.init();
     window.GapNinja.UiProfile.init();
     window.GapNinja.UiAdmin.init();
+    window.GapNinja.Onboarding.init();
     // Initial data render is triggered by auth-ui.js once sign-in state is known.
   });
 })();
