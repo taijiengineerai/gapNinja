@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=33" />
+<link rel="stylesheet" href="css/style.css?v=34" />
 </head>
 <body>
 
@@ -149,6 +149,10 @@
     <div class="nav-item" data-view="links">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.07 0l1.93-1.93a5 5 0 00-7.07-7.07L10.5 5.5"/><path d="M14 11a5 5 0 00-7.07 0l-1.93 1.93a5 5 0 007.07 7.07L13.5 18.5"/></svg>
       My Links
+    </div>
+    <div class="nav-item" data-view="favorites">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 17.3l-6.16 3.73 1.64-7.03L2 9.24l7.19-.61L12 2l2.81 6.63 7.19.61-5.48 4.76 1.64 7.03z"/></svg>
+      Favorites
     </div>
     <div class="nav-item" data-view="support">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><path d="M4.9 4.9l4.24 4.24M14.86 14.86l4.24 4.24M14.86 9.14l4.24-4.24M4.9 19.1l4.24-4.24"/></svg>
@@ -382,6 +386,18 @@
         <div class="card-title">Saved links</div>
         <div id="link-list-wrap"></div>
       </div>
+    </section>
+
+    <!-- FAVORITE COMPANIES VIEW -->
+    <section class="view" id="view-favorites">
+      <div class="view-header">
+        <div>
+          <h1 class="view-title">Favorites</h1>
+          <p class="view-subtitle">Companies whose career page or a specific posting is worth checking again.</p>
+        </div>
+        <button class="btn btn-primary" id="favorite-add-btn">+ Add Favorite</button>
+      </div>
+      <div id="favorite-list-wrap"></div>
     </section>
 
     <!-- SUPPORT VIEW -->
@@ -742,6 +758,21 @@
   </div>
 </div>
 
+<!-- Favorite company modal — shared by the Favorites view, Compare & Analyze results, and Job Queue rows -->
+<div class="modal-overlay" id="favorite-modal">
+  <div class="modal" style="width:460px; max-width:95vw;">
+    <div class="card-title">Add to Favorites</div>
+    <input type="hidden" id="favorite-modal-id" />
+    <div class="field"><label>Company name</label><input type="text" id="favorite-modal-company" placeholder="Acme Corp" /></div>
+    <div class="field"><label>Career page or job link</label><input type="url" id="favorite-modal-link" placeholder="https://acme.com/careers" /></div>
+    <div class="field"><label>Note (optional)</label><input type="text" id="favorite-modal-note" placeholder="Why this one's worth revisiting" /></div>
+    <div class="flex gap-8" style="justify-content:flex-end; margin-top:6px;">
+      <button class="btn btn-secondary" id="favorite-modal-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="favorite-modal-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Application detail modal -->
 <div class="modal-overlay" id="application-modal">
   <div class="modal" style="width:640px; max-width:95vw; max-height:85vh; overflow-y:auto;">
@@ -822,27 +853,28 @@
 <script src="js/invite-config.js"></script>
 <script src="js/adzuna-config.js"></script>
 <script src="js/safebrowsing-config.js"></script>
-<script type="module" src="js/firebase.js?v=33"></script>
+<script type="module" src="js/firebase.js?v=34"></script>
 
 <!-- gapNinja app -->
-<script src="js/skills-data.js?v=33"></script>
-<script src="js/matching.js?v=33"></script>
-<script src="js/templates.js?v=33"></script>
-<script src="js/scam-check.js?v=33"></script>
-<script src="js/pdf-utils.js?v=33"></script>
-<script src="js/pdf-export.js?v=33"></script>
-<script src="js/ui-resumes.js?v=33"></script>
-<script src="js/ui-companies.js?v=33"></script>
-<script src="js/ui-links.js?v=33"></script>
-<script src="js/ui-support.js?v=33"></script>
-<script src="js/ui-compare.js?v=33"></script>
-<script src="js/ui-tasks.js?v=33"></script>
-<script src="js/ui-dashboard.js?v=33"></script>
-<script src="js/ui-invite.js?v=33"></script>
-<script src="js/ui-profile.js?v=33"></script>
-<script src="js/ui-admin.js?v=33"></script>
-<script src="js/onboarding.js?v=33"></script>
-<script src="js/app.js?v=33"></script>
-<script src="js/auth-ui.js?v=33"></script>
+<script src="js/skills-data.js?v=34"></script>
+<script src="js/matching.js?v=34"></script>
+<script src="js/templates.js?v=34"></script>
+<script src="js/scam-check.js?v=34"></script>
+<script src="js/pdf-utils.js?v=34"></script>
+<script src="js/pdf-export.js?v=34"></script>
+<script src="js/ui-resumes.js?v=34"></script>
+<script src="js/ui-companies.js?v=34"></script>
+<script src="js/ui-links.js?v=34"></script>
+<script src="js/ui-favorites.js?v=34"></script>
+<script src="js/ui-support.js?v=34"></script>
+<script src="js/ui-compare.js?v=34"></script>
+<script src="js/ui-tasks.js?v=34"></script>
+<script src="js/ui-dashboard.js?v=34"></script>
+<script src="js/ui-invite.js?v=34"></script>
+<script src="js/ui-profile.js?v=34"></script>
+<script src="js/ui-admin.js?v=34"></script>
+<script src="js/onboarding.js?v=34"></script>
+<script src="js/app.js?v=34"></script>
+<script src="js/auth-ui.js?v=34"></script>
 </body>
 </html>

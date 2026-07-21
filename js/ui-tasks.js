@@ -123,6 +123,7 @@
           <td class="flex gap-8">
             <button class="btn btn-secondary btn-sm" data-analyze="${t.id}">Analyze this job</button>
             <button class="btn btn-secondary btn-sm" data-riskcheck="${t.id}">Check risk</button>
+            <button class="btn btn-secondary btn-sm" data-favorite="${t.id}">☆ Favorite</button>
             <button class="btn btn-secondary btn-sm" data-edit="${t.id}">Edit</button>
             <button class="btn btn-danger btn-sm" data-del="${t.id}">Remove</button>
           </td>
@@ -135,6 +136,10 @@
     wrap.querySelectorAll("[data-del]").forEach((btn) => btn.addEventListener("click", () => deleteTask(btn.getAttribute("data-del"))));
     wrap.querySelectorAll("[data-edit]").forEach((btn) => btn.addEventListener("click", () => startEdit(btn.getAttribute("data-edit"))));
     wrap.querySelectorAll("[data-cancel]").forEach((btn) => btn.addEventListener("click", cancelEdit));
+    wrap.querySelectorAll("[data-favorite]").forEach((btn) => {
+      const task = tasks.find((x) => x.id === btn.getAttribute("data-favorite"));
+      if (task) btn.addEventListener("click", () => window.GapNinja.UiFavorites.openAddModal({ link: task.link }));
+    });
     wrap.querySelectorAll("[data-save]").forEach((btn) => btn.addEventListener("click", () => saveEdit(btn.getAttribute("data-save"), btn)));
     wrap.querySelectorAll("[data-riskcheck]").forEach((btn) => {
       const task = tasks.find((x) => x.id === btn.getAttribute("data-riskcheck"));

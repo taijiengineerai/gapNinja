@@ -22,7 +22,7 @@
   const STEPS = [
     {
       title: "Welcome to gapNinja 👋",
-      body: "A quick tour of the main features — eight steps, skip anytime with the link below.",
+      body: "A quick tour of the main features — nine steps, skip anytime with the link below.",
     },
     {
       selector: '[data-view="dashboard"]',
@@ -53,6 +53,11 @@
       selector: '[data-view="links"]',
       title: "My Links",
       body: "Save your LinkedIn, portfolio, GitHub, or any other link you paste often — as many as you want, each one copyable with a click.",
+    },
+    {
+      selector: '[data-view="favorites"]',
+      title: "Favorites",
+      body: "Companies worth checking again — save a career page or a specific posting with one click from Compare & Analyze or the Job Queue, or add one directly here.",
     },
     {
       selector: '[data-view="support"]',

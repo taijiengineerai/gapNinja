@@ -350,7 +350,10 @@
         <div>
           <div style="font-size:13px; color:var(--text-dim);">${escapeHtml(role)} at <strong style="color:var(--text)">${escapeHtml(company)}</strong></div>
           ${compensation ? `<div style="font-size:12.5px; color:var(--neon); margin-top:2px;">${escapeHtml(compensation)}</div>` : ""}
-          ${url ? `<a class="btn btn-secondary btn-sm" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}" style="margin-top:6px;">Open posting ↗</a>` : ""}
+          <div class="flex gap-8" style="margin-top:6px;">
+            ${url ? `<a class="btn btn-secondary btn-sm" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">Open posting ↗</a>` : ""}
+            <button type="button" class="btn btn-secondary btn-sm" id="compare-add-favorite-btn">☆ Add to Favorites</button>
+          </div>
         </div>
         <div style="text-align:right;">
           <div style="font-family:var(--font-display); font-size:32px; font-weight:700; color:${scoreColor(analysis.score)};">${analysis.score}%</div>
@@ -399,6 +402,13 @@
   }
 
   function wireResultsPanel(data) {
+    const favoriteBtn = document.getElementById("compare-add-favorite-btn");
+    if (favoriteBtn) {
+      favoriteBtn.addEventListener("click", () => {
+        window.GapNinja.UiFavorites.openAddModal({ company: data.company, link: data.url });
+      });
+    }
+
     document.querySelectorAll(".pill-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
         document.querySelectorAll(".pill-tab").forEach((t) => t.classList.remove("active"));
