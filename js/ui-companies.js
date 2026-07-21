@@ -8,15 +8,38 @@
   // just re-filters in memory instead of re-fetching from Firestore on every keystroke.
   let cachedCompanies = null;
   let cachedApps = null;
+  let currentPageSize = 20; // number, or "all"
+  let currentPage = 1; // 1-based
 
   function init() {
     document.getElementById("company-add-btn").addEventListener("click", () => openModal(null));
     document.getElementById("company-modal-cancel-btn").addEventListener("click", closeModal);
     document.getElementById("company-modal-save-btn").addEventListener("click", saveModal);
     document.getElementById("company-modal-lookup-btn").addEventListener("click", lookupContactInfo);
-    document.getElementById("company-search-input").addEventListener("input", renderList);
-    document.getElementById("company-period-filter").addEventListener("change", renderList);
+    document.getElementById("company-search-input").addEventListener("input", () => {
+      currentPage = 1; // a new search term changes what "page 1" means — start over
+      renderList();
+    });
+    document.getElementById("company-period-filter").addEventListener("change", () => {
+      currentPage = 1;
+      renderList();
+    });
     document.getElementById("company-sort").addEventListener("change", renderList);
+    document.getElementById("company-page-size").addEventListener("change", (e) => {
+      currentPageSize = e.target.value === "all" ? "all" : parseInt(e.target.value, 10);
+      currentPage = 1;
+      renderList();
+    });
+    document.getElementById("company-page-prev").addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderList();
+      }
+    });
+    document.getElementById("company-page-next").addEventListener("click", () => {
+      currentPage++; // clamped inside renderList() against the actual page count
+      renderList();
+    });
   }
 
   async function openModal(id) {
@@ -233,6 +256,7 @@
     const wrap = document.getElementById("company-list-wrap");
     if (!cachedCompanies) return;
     if (cachedCompanies.length === 0) {
+      document.getElementById("company-pagination").style.display = "none";
       wrap.innerHTML = `<div class="empty-state">No companies yet. They're created automatically when you save a comparison, or add one manually.</div>`;
       return;
     }
@@ -277,6 +301,7 @@
     }
 
     if (entries.length === 0) {
+      document.getElementById("company-pagination").style.display = "none";
       const reason = search && period === "month"
         ? `matching "${escapeHtml(search)}" with activity this month`
         : search
@@ -286,8 +311,29 @@
       return;
     }
 
+    // Paginate: "all" shows every matching company on one page; otherwise clamp currentPage to
+    // whatever the filtered list can actually support (e.g. after a search narrows the results).
+    const pageSize = currentPageSize === "all" ? entries.length : currentPageSize;
+    const pageCount = Math.max(1, Math.ceil(entries.length / pageSize));
+    if (currentPage > pageCount) currentPage = pageCount;
+    if (currentPage < 1) currentPage = 1;
+    const startIdx = (currentPage - 1) * pageSize;
+    const pageEntries = entries.slice(startIdx, startIdx + pageSize);
+
+    const paginationEl = document.getElementById("company-pagination");
+    if (currentPageSize === "all" || pageCount <= 1) {
+      paginationEl.style.display = "none";
+    } else {
+      paginationEl.style.display = "flex";
+      const endIdx = Math.min(startIdx + pageSize, entries.length);
+      document.getElementById("company-pagination-summary").textContent =
+        `Showing ${startIdx + 1}–${endIdx} of ${entries.length}`;
+      document.getElementById("company-page-prev").disabled = currentPage <= 1;
+      document.getElementById("company-page-next").disabled = currentPage >= pageCount;
+    }
+
     let html = "";
-    entries.forEach(({ c, relatedApps }) => {
+    pageEntries.forEach(({ c, relatedApps }) => {
       const contactLines = [
         c.contactEmail ? `<a href="mailto:${escapeHtml(c.contactEmail)}">${escapeHtml(c.contactEmail)}</a>` : "",
         c.contactPhone ? escapeHtml(c.contactPhone) : "",
