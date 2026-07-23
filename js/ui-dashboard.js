@@ -39,6 +39,15 @@
       currentPage++; // clamped inside render() against the actual page count
       render();
     });
+    // Switching status to "Applied" fills in today's date if the field is still empty — one
+    // less thing to type when you're marking something applied right after sending it. Only
+    // fills a blank field (never overwrites a date you already set or backdated), and only
+    // reacts to an actual change, not just opening the modal on an old record.
+    document.getElementById("application-modal-status").addEventListener("change", (e) => {
+      if (e.target.value !== "applied") return;
+      const dateInput = document.getElementById("application-modal-applied-date");
+      if (!dateInput.value) dateInput.value = todayLocalISODate();
+    });
     document.getElementById("application-modal-close-btn").addEventListener("click", closeModal);
     document.getElementById("application-modal-save-btn").addEventListener("click", saveModal);
     document.getElementById("application-modal-delete-btn").addEventListener("click", deleteFromModal);
@@ -201,6 +210,15 @@
   function closeModal() {
     document.getElementById("application-modal").classList.remove("open");
     openAppId = null;
+  }
+
+  // Today's date as "YYYY-MM-DD" in the browser's LOCAL timezone, for a <input type="date">
+  // value — new Date().toISOString() alone would use UTC, which reads as tomorrow (or
+  // yesterday) for anyone west (or east) of UTC for part of the day.
+  function todayLocalISODate() {
+    const d = new Date();
+    const tzOffsetMs = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - tzOffsetMs).toISOString().slice(0, 10);
   }
 
   async function saveModal() {
