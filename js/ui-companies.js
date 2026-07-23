@@ -391,6 +391,9 @@
     document.getElementById("history-preview-meta").textContent =
       `Resume: ${a.resumeLabel || "—"} · Match score: ${a.matchScore != null ? a.matchScore + "%" : "—"} · Saved ${a.createdAt ? formatTimestamp(a.createdAt) : "—"}`;
     document.getElementById("history-preview-compensation").textContent = a.compensation ? `Compensation: ${a.compensation}` : "";
+    document.getElementById("history-preview-link").innerHTML = a.jdUrl
+      ? `<a class="btn btn-primary btn-sm" href="${escapeHtml(a.jdUrl)}" target="_blank" rel="noopener" title="${escapeHtml(a.jdUrl)}">Open posting ↗</a>`
+      : `<span class="hint">No job link was saved for this comparison.</span>`;
 
     document.getElementById("history-preview-matched").innerHTML =
       (a.matchedSkills || []).map((s) => `<span class="badge badge-matched">✓ ${escapeHtml(s)}</span>`).join("") || `<span class="muted">None</span>`;
