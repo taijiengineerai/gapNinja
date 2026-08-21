@@ -48,6 +48,14 @@
     return t.length < 115 && !/[.!?]$/.test(t);
   }
 
+  // A real name is short and doesn't read like a sentence or bullet. PDF text extraction
+  // doesn't always come out in reading order (columns, headers/footers, unusual layouts can
+  // shuffle line order), so the very first non-empty line isn't reliably the person's name —
+  // this guards against mistaking a long bullet/sentence for one and blowing it up to 19pt.
+  function looksLikeName(t) {
+    return t.length > 0 && t.length <= 45 && !/[.!?]$/.test(t) && !/^-\s+/.test(t);
+  }
+
   // Some job-header lines are written as segments joined by " — " (an em dash with spaces on
   // either side), optionally with a trailing "(dates)" parenthetical. This pulls a job header
   // apart into { title, company, date } so each part can get its own styling and the date can
@@ -100,7 +108,8 @@
     const clean = sanitizeText(text);
     const rawLines = clean.split("\n");
     let y = margin;
-    let firstContentLine = true;
+    let contentLineNumber = 0; // counts non-empty lines only, so blank lines before the name don't throw off "first"/"second" line detection
+    let nameRendered = false; // only treat the line right after the name as a contact/subtitle line if a name was actually rendered
 
     function ensureRoom(h) {
       if (y + h > pageHeight - margin) {
@@ -138,27 +147,38 @@
       y += 2;
     }
 
-    rawLines.forEach((line, idx) => {
+    rawLines.forEach((line) => {
       const t = line.trim();
       if (t === "") {
         y += 8;
         return;
       }
+      contentLineNumber++;
 
-      // First non-empty line = name.
-      if (firstContentLine) {
+      // First non-empty line: only render it as the big bold centered "name" header if it
+      // actually looks like a name (short, no sentence punctuation) — text extraction from a
+      // PDF doesn't always preserve reading order (columns, headers, unusual layouts can shuffle
+      // lines), so this can't be assumed. Getting it wrong used to blow a random long line up to
+      // 19pt centered with no wrapping, running it straight off the page — this both guards
+      // against that misfire and, just in case, always wraps rather than drawing one raw line.
+      if (contentLineNumber === 1 && looksLikeName(t)) {
         doc.setFont("times", "bold");
         doc.setFontSize(19);
         doc.setTextColor(NAVY[0], NAVY[1], NAVY[2]);
-        ensureRoom(24);
-        doc.text(t, pageWidth / 2, y, { align: "center" });
-        y += 22;
-        firstContentLine = false;
+        const nameLines = doc.splitTextToSize(t, maxWidth);
+        nameLines.forEach((l) => {
+          ensureRoom(24);
+          doc.text(l, pageWidth / 2, y, { align: "center" });
+          y += 22;
+        });
+        nameRendered = true;
         return;
       }
 
-      // Second line = contact/subtitle line right under the name.
-      if (idx === 1) {
+      // Second non-empty line, immediately after a real rendered name — treat as the
+      // contact/subtitle line. Skipped entirely if the first line didn't look like a name, so a
+      // wrong guess there doesn't cascade into centering body text that was never meant to be one.
+      if (contentLineNumber === 2 && nameRendered) {
         doc.setFont("times", "normal");
         doc.setFontSize(10.5);
         doc.setTextColor(GRAY[0], GRAY[1], GRAY[2]);
@@ -219,6 +239,44 @@
     doc.save(sanitizeFilename(filename));
   }
 
+  // Downloads a saved resume record as a PDF named after a specific job — shared by Compare &
+  // Analyze's "Download Resume (PDF)" button and the Dashboard's application detail modal, so
+  // both get identical behavior instead of two copies of this logic drifting apart.
+  //
+  // Prefers the original uploaded PDF (fetched as a blob and re-triggered with a custom
+  // filename — the browser's native `download` attribute doesn't reliably rename cross-origin
+  // files, which is why this fetches the bytes itself instead of just linking to resume.pdfUrl)
+  // so your actual formatting is preserved. Falls back to downloadTextAsPdf() above (a plain-text
+  // reflow) if there's no stored original or the fetch fails — e.g. Cloud Storage CORS isn't
+  // configured for this account. Either path always ends in a correctly-named download.
+  //
+  // `resume` is a resume record from Storage.resumes (needs .label, .rawText, and optionally
+  // .pdfUrl). `titleParts` is an array of strings (e.g. [role, company]) joined into the filename.
+  async function downloadResumeAsPdf(resume, titleParts) {
+    if (!resume) throw new Error("That resume couldn't be found.");
+    const parts = [resume.label || "Resume"].concat((titleParts || []).filter(Boolean));
+    const filename = sanitizeFilename(parts.join(" - ")) + ".pdf";
+
+    if (resume.pdfUrl) {
+      try {
+        const res = await fetch(resume.pdfUrl);
+        if (res.ok) {
+          const blob = await res.blob();
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          link.click();
+          URL.revokeObjectURL(link.href);
+          return;
+        }
+      } catch (e) {
+        // Fetching the original failed (CORS/network) — fall through to the text-reflow version below.
+      }
+    }
+    if (!resume.rawText) throw new Error("No stored file or extracted text for this resume.");
+    downloadTextAsPdf(resume.rawText, filename);
+  }
+
   global.GapNinja = global.GapNinja || {};
-  global.GapNinja.PdfExport = { downloadTextAsPdf, sanitizeText };
+  global.GapNinja.PdfExport = { downloadTextAsPdf, sanitizeText, downloadResumeAsPdf };
 })(window);

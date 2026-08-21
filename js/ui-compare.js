@@ -500,13 +500,10 @@
   }
 
   // Downloads the resume you're currently comparing against as a PDF, named after this specific
-  // job so it's ready to attach to an application without a rename ("Billy_Huynh_Resume_-
-  // _Lead_Network_Engineer_-_Disney.pdf" instead of whatever the upload was originally called).
-  // Prefers the original uploaded PDF (keeps your real formatting/layout) — falls back to a
-  // plain-text reflow (same engine used for the cover letter and Skills Summary PDFs) if there's
-  // no stored original, or fetching it fails (e.g. Cloud Storage CORS isn't configured for this
-  // account — see README's Storage setup section). Either way you get a correctly-named file,
-  // never a dead end.
+  // job so it's ready to attach to an application without a rename ("Resume - Lead Network
+  // Engineer - Disney.pdf" instead of whatever the upload was originally called). Shared logic
+  // (original-PDF-first, text-reflow fallback) lives in window.GapNinja.PdfExport.downloadResumeAsPdf
+  // — see js/pdf-export.js — also used by the Dashboard's application detail modal.
   async function downloadResumeForJob(data, btn) {
     if (!data.resumeId) {
       window.GapNinja.toast("No resume selected");
@@ -517,30 +514,7 @@
     btn.textContent = "Preparing…";
     try {
       const resume = await S().resumes.get(data.resumeId);
-      if (!resume) throw new Error("That resume couldn't be found.");
-      const filename = `${resume.label || "Resume"} - ${data.role || "Role"} - ${data.company || "Company"}.pdf`.replace(/[^a-z0-9.\-_ ]+/gi, "_");
-
-      let downloaded = false;
-      if (resume.pdfUrl) {
-        try {
-          const res = await fetch(resume.pdfUrl);
-          if (res.ok) {
-            const blob = await res.blob();
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            downloaded = true;
-          }
-        } catch (e) {
-          // Fetching the original failed (CORS/network) — fall through to the text-reflow version below.
-        }
-      }
-      if (!downloaded) {
-        if (!resume.rawText) throw new Error("No stored file or extracted text for this resume.");
-        window.GapNinja.PdfExport.downloadTextAsPdf(resume.rawText, filename);
-      }
+      await window.GapNinja.PdfExport.downloadResumeAsPdf(resume, [data.role, data.company]);
       window.GapNinja.toast("Resume downloaded");
     } catch (e) {
       console.error(e);

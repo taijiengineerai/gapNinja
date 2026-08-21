@@ -7,7 +7,7 @@
   let currentPageSize = 20; // number, or "all"
   let currentPage = 1; // 1-based
   let openAppId = null;
-  let openAppMeta = { companyName: "", role: "" };
+  let openAppMeta = { companyName: "", role: "", resumeId: "" };
 
   const STATUS_LABEL = {
     not_applied: "Not applied",
@@ -53,6 +53,27 @@
     document.getElementById("application-modal-delete-btn").addEventListener("click", deleteFromModal);
     document.getElementById("application-modal-copy-letter").addEventListener("click", () => {
       copyToClipboard(document.getElementById("application-modal-letter").value);
+    });
+    document.getElementById("application-modal-download-resume-btn").addEventListener("click", async () => {
+      const btn = document.getElementById("application-modal-download-resume-btn");
+      if (!openAppMeta.resumeId) {
+        window.GapNinja.toast("No resume linked to this application");
+        return;
+      }
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Preparing…";
+      try {
+        const resume = await S().resumes.get(openAppMeta.resumeId);
+        await window.GapNinja.PdfExport.downloadResumeAsPdf(resume, [openAppMeta.role, openAppMeta.companyName]);
+        window.GapNinja.toast("Resume downloaded");
+      } catch (e) {
+        console.error(e);
+        window.GapNinja.toast("Couldn't download resume: " + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
     });
     document.getElementById("application-modal-download-letter-pdf").addEventListener("click", () => {
       try {
@@ -174,7 +195,7 @@
     const a = await S().applications.get(id);
     if (!a) return;
     openAppId = id;
-    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role" };
+    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role", resumeId: a.resumeId || "" };
     document.getElementById("application-modal-title").textContent = `${a.role} — ${a.companyName}`;
     document.getElementById("application-modal-meta").textContent = `Resume: ${a.resumeLabel || "—"} · Match score: ${a.matchScore}% · Saved ${new Date(a.createdAt).toLocaleDateString()}`;
     document.getElementById("application-modal-id").value = a.id;
