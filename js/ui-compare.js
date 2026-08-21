@@ -350,9 +350,10 @@
         <div>
           <div style="font-size:13px; color:var(--text-dim);">${escapeHtml(role)} at <strong style="color:var(--text)">${escapeHtml(company)}</strong></div>
           ${compensation ? `<div style="font-size:12.5px; color:var(--neon); margin-top:2px;">${escapeHtml(compensation)}</div>` : ""}
-          <div class="flex gap-8" style="margin-top:6px;">
+          <div class="flex gap-8" style="margin-top:6px; flex-wrap:wrap;">
             ${url ? `<a class="btn btn-secondary btn-sm" href="${escapeHtml(url)}" target="_blank" rel="noopener" title="${escapeHtml(url)}">Open posting ↗</a>` : ""}
             <button type="button" class="btn btn-secondary btn-sm" id="compare-add-favorite-btn">☆ Add to Favorites</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="compare-download-resume-btn">📄 Download Resume (PDF)</button>
           </div>
         </div>
         <div style="text-align:right;">
@@ -407,6 +408,11 @@
       favoriteBtn.addEventListener("click", () => {
         window.GapNinja.UiFavorites.openAddModal({ company: data.company, link: data.url });
       });
+    }
+
+    const downloadResumeBtn = document.getElementById("compare-download-resume-btn");
+    if (downloadResumeBtn) {
+      downloadResumeBtn.addEventListener("click", () => downloadResumeForJob(data, downloadResumeBtn));
     }
 
     document.querySelectorAll(".pill-tab").forEach((tab) => {
@@ -490,6 +496,58 @@
       window.GapNinja.toast("Couldn't save: " + e.message);
       saveBtn.disabled = false;
       saveBtn.textContent = "Save to Dashboard";
+    }
+  }
+
+  // Downloads the resume you're currently comparing against as a PDF, named after this specific
+  // job so it's ready to attach to an application without a rename ("Billy_Huynh_Resume_-
+  // _Lead_Network_Engineer_-_Disney.pdf" instead of whatever the upload was originally called).
+  // Prefers the original uploaded PDF (keeps your real formatting/layout) — falls back to a
+  // plain-text reflow (same engine used for the cover letter and Skills Summary PDFs) if there's
+  // no stored original, or fetching it fails (e.g. Cloud Storage CORS isn't configured for this
+  // account — see README's Storage setup section). Either way you get a correctly-named file,
+  // never a dead end.
+  async function downloadResumeForJob(data, btn) {
+    if (!data.resumeId) {
+      window.GapNinja.toast("No resume selected");
+      return;
+    }
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Preparing…";
+    try {
+      const resume = await S().resumes.get(data.resumeId);
+      if (!resume) throw new Error("That resume couldn't be found.");
+      const filename = `${resume.label || "Resume"} - ${data.role || "Role"} - ${data.company || "Company"}.pdf`.replace(/[^a-z0-9.\-_ ]+/gi, "_");
+
+      let downloaded = false;
+      if (resume.pdfUrl) {
+        try {
+          const res = await fetch(resume.pdfUrl);
+          if (res.ok) {
+            const blob = await res.blob();
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            downloaded = true;
+          }
+        } catch (e) {
+          // Fetching the original failed (CORS/network) — fall through to the text-reflow version below.
+        }
+      }
+      if (!downloaded) {
+        if (!resume.rawText) throw new Error("No stored file or extracted text for this resume.");
+        window.GapNinja.PdfExport.downloadTextAsPdf(resume.rawText, filename);
+      }
+      window.GapNinja.toast("Resume downloaded");
+    } catch (e) {
+      console.error(e);
+      window.GapNinja.toast("Couldn't download resume: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
     }
   }
 
