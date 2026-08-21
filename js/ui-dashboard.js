@@ -7,7 +7,7 @@
   let currentPageSize = 20; // number, or "all"
   let currentPage = 1; // 1-based
   let openAppId = null;
-  let openAppMeta = { companyName: "", role: "", resumeId: "" };
+  let openAppMeta = { companyName: "", role: "", resumeId: "", resumeLabel: "" };
 
   const STATUS_LABEL = {
     not_applied: "Not applied",
@@ -56,7 +56,7 @@
     });
     document.getElementById("application-modal-download-resume-btn").addEventListener("click", async () => {
       const btn = document.getElementById("application-modal-download-resume-btn");
-      if (!openAppMeta.resumeId) {
+      if (!openAppMeta.resumeId && !openAppMeta.resumeLabel) {
         window.GapNinja.toast("No resume linked to this application");
         return;
       }
@@ -64,7 +64,16 @@
       btn.disabled = true;
       btn.textContent = "Preparing…";
       try {
-        const resume = await S().resumes.get(openAppMeta.resumeId);
+        let resume = await S().resumes.get(openAppMeta.resumeId);
+        // The resume this application was originally compared against may since have been
+        // deleted and re-uploaded (e.g. after a fix to how resumes are read) — that gives it a
+        // brand-new ID, so the old resumeId saved on this application no longer resolves. Fall
+        // back to matching by the saved resume label against the current resume list, so a
+        // delete-and-re-upload doesn't permanently break downloading for past comparisons.
+        if (!resume && openAppMeta.resumeLabel) {
+          const all = await S().resumes.list();
+          resume = all.find((r) => r.label === openAppMeta.resumeLabel) || null;
+        }
         await window.GapNinja.PdfExport.downloadResumeAsPdf(resume, [openAppMeta.role, openAppMeta.companyName]);
         window.GapNinja.toast("Resume downloaded");
       } catch (e) {
@@ -195,7 +204,7 @@
     const a = await S().applications.get(id);
     if (!a) return;
     openAppId = id;
-    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role", resumeId: a.resumeId || "" };
+    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role", resumeId: a.resumeId || "", resumeLabel: a.resumeLabel || "" };
     document.getElementById("application-modal-title").textContent = `${a.role} — ${a.companyName}`;
     document.getElementById("application-modal-meta").textContent = `Resume: ${a.resumeLabel || "—"} · Match score: ${a.matchScore}% · Saved ${new Date(a.createdAt).toLocaleDateString()}`;
     document.getElementById("application-modal-id").value = a.id;
