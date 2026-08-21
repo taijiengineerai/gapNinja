@@ -87,6 +87,90 @@
     return { title, company, date: date || "" };
   }
 
+  // Best-effort: finds the resume's own headline/title (e.g. "Wireless & Network Engineer") near
+  // the top of the resume and swaps it for the specific job title being applied to, so a
+  // downloaded resume reads as tailored to that role. Handles both common header shapes: name +
+  // title + location/contact all on one line (e.g. "BILLY HUYNH  Wireless & Network Engineer
+  // Woodland Park, CO | 314-422-6711 | ..."), and name and title on their own separate lines.
+  // Only touches text it's confident about -- if the header doesn't match a recognizable shape,
+  // it's left untouched rather than risk mangling someone's actual name or contact details.
+  function injectTargetTitle(text, role) {
+    if (!role) return text;
+    const lines = text.split("\n");
+    // Marks where phone/email contact info begins, when it trails on the same line as the
+    // name/title (location is handled separately below, since a "City, ST" location can itself
+    // contain title-case words that would otherwise get swallowed into the title by mistake).
+    const boundaryRe = /(\s*\|\s*|\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}|[\w.+-]+@[\w-]+\.[a-z]{2,})/i;
+    // A short run of 1-4 ALL-CAPS words at the very start of a line reads as a name in most
+    // resume header styles (e.g. "BILLY HUYNH").
+    const nameRe = /^([A-Z][A-Z'’.-]*(?:\s+[A-Z][A-Z'’.-]*){0,3})\b/;
+    const locationRe = /,\s*[A-Z]{2}\b/;
+    const looksLikeContact = (t) => /@|\d{3}[\s.-]?\d{3}[\s.-]?\d{4}|,\s*[A-Z]{2}\b/.test(t);
+    // Common job-title nouns, used to find where a title ends and a "City, ST" location begins
+    // when both share a line (e.g. "Wireless & Network Engineer Woodland Park, CO") -- without
+    // this, a multi-word city name reads just as capitalized as the title and can't otherwise be
+    // told apart from it.
+    const titleWordRe = /^(Engineer|Manager|Specialist|Analyst|Developer|Director|Lead|Architect|Administrator|Consultant|Technician|Coordinator|Designer|Scientist|Officer|Executive|Associate|Assistant|Supervisor|Representative|Strategist|Producer|Recruiter|Accountant|Advisor|Planner|President)s?$/i;
+
+    for (let i = 0; i < Math.min(lines.length, 4); i++) {
+      const line = lines[i];
+      if (!line.trim()) continue;
+      const boundaryMatch = line.match(boundaryRe);
+      const head = boundaryMatch ? line.slice(0, boundaryMatch.index) : line;
+      const tail = boundaryMatch ? line.slice(boundaryMatch.index) : "";
+      const nameMatch = head.match(nameRe);
+      if (!nameMatch) return text; // first content line isn't name-shaped -- don't guess further
+
+      const name = nameMatch[1];
+      const remainder = head.slice(nameMatch[0].length);
+
+      if (!remainder.trim()) {
+        // Name-only line -- the very next non-empty line might be a standalone title line
+        // (short, no contact info, not a section header like "PROFESSIONAL SUMMARY").
+        for (let j = i + 1; j < Math.min(lines.length, i + 3); j++) {
+          const t = lines[j].trim();
+          if (!t) continue;
+          if (t.length <= 60 && !looksLikeContact(t) && !isSectionHeader(t)) {
+            lines[j] = role;
+            return lines.join("\n");
+          }
+          break; // only ever consider the very next non-empty line
+        }
+        return text; // found the name but no safe title line to replace -- leave it alone
+      }
+
+      const locMatch = remainder.match(locationRe);
+      if (locMatch) {
+        // Title and location share this line -- find the last title-sounding word before the
+        // location comma and split there, so the city name isn't mistaken for part of the title.
+        const beforeLoc = remainder.slice(0, locMatch.index);
+        const afterLocStart = remainder.slice(locMatch.index); // ", CO" onward
+        const tokenRe = /\S+/g;
+        let m;
+        let splitIdx = -1;
+        while ((m = tokenRe.exec(beforeLoc))) {
+          if (titleWordRe.test(m[0].replace(/[^A-Za-z]/g, ""))) {
+            splitIdx = m.index + m[0].length;
+          }
+        }
+        if (splitIdx === -1) return text; // no confident title/location boundary -- don't guess
+        const existingTitle = beforeLoc.slice(0, splitIdx).trim();
+        const location = beforeLoc.slice(splitIdx).trim();
+        if (!existingTitle) return text;
+        lines[i] = `${name}  ${role}  ${location}${afterLocStart}${tail}`;
+        return lines.join("\n");
+      }
+
+      const existingTitle = remainder.trim();
+      if (existingTitle) {
+        lines[i] = `${name}  ${role}${tail}`;
+        return lines.join("\n");
+      }
+      return text;
+    }
+    return text;
+  }
+
   // Renders `text` as a letter-formatted PDF: bold/colored name header, centered contact line,
   // bold underlined section headers, real bullet dots for "- " lines, job headers with the date
   // flush right, and wrapped body text.
@@ -239,23 +323,32 @@
     doc.save(sanitizeFilename(filename));
   }
 
-  // Downloads a saved resume record as a PDF named after a specific job — shared by Compare &
-  // Analyze's "Download Resume (PDF)" button and the Dashboard's application detail modal, so
-  // both get identical behavior instead of two copies of this logic drifting apart.
+  // Downloads a saved resume record as a PDF named after, and tailored to, a specific job —
+  // shared by Compare & Analyze's "Download Resume (PDF)" button and the Dashboard's application
+  // detail modal, so both get identical behavior instead of two copies of this logic drifting
+  // apart.
   //
-  // Prefers the original uploaded PDF (fetched as a blob and re-triggered with a custom
-  // filename — the browser's native `download` attribute doesn't reliably rename cross-origin
-  // files, which is why this fetches the bytes itself instead of just linking to resume.pdfUrl)
-  // so your actual formatting is preserved. Falls back to downloadTextAsPdf() above (a plain-text
-  // reflow) if there's no stored original or the fetch fails — e.g. Cloud Storage CORS isn't
-  // configured for this account. Either path always ends in a correctly-named download.
+  // When a role is known, this always rebuilds the resume from its extracted text (via
+  // downloadTextAsPdf + injectTargetTitle above) rather than downloading the original file
+  // unmodified — an existing PDF's bytes can't be edited in place, so showing the target job
+  // title in the resume's own header means trading pixel-exact original formatting for an
+  // editable, cleanly re-rendered version. Falls back to the original uploaded PDF (fetched as a
+  // blob so it can be renamed on download) only when there's no role to tailor to, or no stored
+  // text at all to rebuild from.
   //
   // `resume` is a resume record from Storage.resumes (needs .label, .rawText, and optionally
-  // .pdfUrl). `titleParts` is an array of strings (e.g. [role, company]) joined into the filename.
+  // .pdfUrl). `titleParts` is an array of strings (e.g. [role, company]) — the first element
+  // doubles as the target job title to inject; all elements are joined into the filename.
   async function downloadResumeAsPdf(resume, titleParts) {
     if (!resume) throw new Error("That resume couldn't be found.");
     const parts = [resume.label || "Resume"].concat((titleParts || []).filter(Boolean));
     const filename = sanitizeFilename(parts.join(" - ")) + ".pdf";
+    const role = (titleParts || [])[0] || "";
+
+    if (role && resume.rawText) {
+      downloadTextAsPdf(injectTargetTitle(resume.rawText, role), filename);
+      return;
+    }
 
     if (resume.pdfUrl) {
       try {

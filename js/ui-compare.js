@@ -501,9 +501,10 @@
 
   // Downloads the resume you're currently comparing against as a PDF, named after this specific
   // job so it's ready to attach to an application without a rename ("Resume - Lead Network
-  // Engineer - Disney.pdf" instead of whatever the upload was originally called). Shared logic
-  // (original-PDF-first, text-reflow fallback) lives in window.GapNinja.PdfExport.downloadResumeAsPdf
-  // — see js/pdf-export.js — also used by the Dashboard's application detail modal.
+  // Engineer - Disney.pdf" instead of whatever the upload was originally called), and with its
+  // header line updated to show this job's title instead of the resume's own. Shared logic lives
+  // in window.GapNinja.PdfExport.downloadResumeAsPdf — see js/pdf-export.js — also used by the
+  // Dashboard's application detail modal.
   async function downloadResumeForJob(data, btn) {
     if (!data.resumeId) {
       window.GapNinja.toast("No resume selected");
