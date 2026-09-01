@@ -4,6 +4,7 @@
     return window.GapNinja.Storage;
   }
   let currentFilter = "";
+  let currentSearch = ""; // company-name search, lowercased
   let currentPageSize = 20; // number, or "all"
   let currentPage = 1; // 1-based
   let openAppId = null;
@@ -19,6 +20,11 @@
   };
 
   function init() {
+    document.getElementById("dashboard-company-search").addEventListener("input", (e) => {
+      currentSearch = e.target.value.trim().toLowerCase();
+      currentPage = 1; // changing the search changes what "page 1" means — start over
+      render();
+    });
     document.getElementById("dashboard-status-filter").addEventListener("change", (e) => {
       currentFilter = e.target.value;
       currentPage = 1; // changing the filter changes what "page 1" means — start over
@@ -141,7 +147,10 @@
     }
     renderStats(apps);
 
-    const filtered = currentFilter ? apps.filter((a) => a.status === currentFilter) : apps;
+    let filtered = currentFilter ? apps.filter((a) => a.status === currentFilter) : apps;
+    if (currentSearch) {
+      filtered = filtered.filter((a) => (a.companyName || "").toLowerCase().includes(currentSearch));
+    }
 
     if (apps.length === 0) {
       document.getElementById("dashboard-pagination").style.display = "none";
@@ -150,7 +159,9 @@
     }
     if (filtered.length === 0) {
       document.getElementById("dashboard-pagination").style.display = "none";
-      wrap.innerHTML = `<div class="empty-state">No applications with that status.</div>`;
+      wrap.innerHTML = `<div class="empty-state">${
+        currentSearch ? `No companies matching "${escapeHtml(currentSearch)}".` : "No applications with that status."
+      }</div>`;
       return;
     }
 
