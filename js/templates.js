@@ -179,10 +179,41 @@
     return body.trim();
   }
 
+  // A starting-point cover letter template for the "Your reusable template" card on the Cover
+  // Letters tab. Unlike generateCoverLetter above (which is generated fresh from a specific
+  // analysis every time), this is a fixed block of text meant to be saved, hand-edited into your
+  // own voice, and reused across applications — with [Company Name] and [Job Title] as the only
+  // two placeholders "Use my template" (in Compare & Analyze) knows how to fill in automatically.
+  // Deliberately plain, short-sentence writing with no em dashes, so it doesn't read as
+  // AI-generated the way a heavily polished template can.
+  const DEFAULT_COVER_LETTER_TEMPLATE = `[Your Name]
+[Your City, State] | [Your Phone] | [Your Email]
+
+[Date]
+
+[Hiring Manager Name, if known]
+[Company Name]
+
+Dear [Hiring Manager Name / Hiring Team],
+
+I'm applying for the [Job Title] role at [Company Name]. [One sentence about something specific you found out about them, a product, initiative, or value that caught your attention.]
+
+I've spent [X years] working in [your field], so I can step into this role and be useful right away. But the technical side isn't the only reason I'm writing. How a team works together matters just as much to me.
+
+[One or two sentences with a real example from your work: what you did, and what it showed about how you work with other people. Mentoring, working across teams, and getting through a hard problem with other people all count. Be specific rather than saying "I'm a team player."]
+
+That's what I look for in a company too. A team that treats mentoring and knowledge sharing as part of the job, not something extra. A place where people can raise a problem early instead of sitting on it until it's bigger. [Optional: one sentence connecting this to something specific you learned about how their team works.]
+
+I'd like to talk about how my background fits what your team is building. Thanks for taking the time to read this.
+
+Sincerely,
+[Your Name]`;
+
   global.GapNinja = global.GapNinja || {};
   global.GapNinja.Templates = {
     generateCoverLetter,
     generateFollowUpEmail,
     generateSkillsSummary,
+    DEFAULT_COVER_LETTER_TEMPLATE,
   };
 })(window);

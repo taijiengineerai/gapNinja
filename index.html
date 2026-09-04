@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=55" />
+<link rel="stylesheet" href="css/style.css?v=56" />
 </head>
 <body>
 
@@ -399,6 +399,22 @@
           <p class="view-subtitle">Every cover letter gapNinja has drafted for you — browse, copy, or download one to reuse as a starting point.</p>
         </div>
       </div>
+      <div class="card" style="margin-bottom:18px;">
+        <div class="card-title">Your reusable template</div>
+        <p class="hint" style="margin-top:-4px;">
+          Starts as an example with <code>[Company Name]</code> and <code>[Job Title]</code> placeholders — edit it into your own voice, then Save. From Compare &amp; Analyze, hit "Use my template" to drop it into a new letter with the company and role filled in automatically.
+        </p>
+        <div class="field">
+          <textarea id="letter-template-text" style="min-height:280px;"></textarea>
+        </div>
+        <div class="flex gap-8" style="flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" id="letter-template-save-btn">Save Template</button>
+          <button class="btn btn-secondary btn-sm" id="letter-template-copy-btn">Copy</button>
+          <button class="btn btn-secondary btn-sm" id="letter-template-download-btn">Download PDF</button>
+          <button class="btn btn-secondary btn-sm" id="letter-template-reset-btn">Reset to example</button>
+        </div>
+      </div>
+      <div class="card-title" style="margin-bottom:10px;">Past letters</div>
       <div class="flex-between" style="margin-bottom:14px; gap:12px; flex-wrap:wrap;">
         <input type="search" id="letter-search-input" placeholder="Search company or role…" style="max-width:320px; flex:1;" />
         <select id="letter-page-size" style="width:auto;">
@@ -976,7 +992,7 @@
 <!-- Theme must be the very first script — it applies your saved accent color (green/blue/purple)
      from localStorage immediately, before anything else loads, so there's no flash of the
      default green for anyone who's picked another theme. See js/theme.js for details. -->
-<script src="js/theme.js?v=55"></script>
+<script src="js/theme.js?v=56"></script>
 
 <!-- CDN libraries (loaded by your browser, not bundled) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -986,29 +1002,29 @@
 <script src="js/invite-config.js"></script>
 <script src="js/adzuna-config.js"></script>
 <script src="js/safebrowsing-config.js"></script>
-<script type="module" src="js/firebase.js?v=55"></script>
+<script type="module" src="js/firebase.js?v=56"></script>
 
 <!-- gapNinja app -->
-<script src="js/skills-data.js?v=55"></script>
-<script src="js/matching.js?v=55"></script>
-<script src="js/templates.js?v=55"></script>
-<script src="js/scam-check.js?v=55"></script>
-<script src="js/pdf-utils.js?v=55"></script>
-<script src="js/pdf-export.js?v=55"></script>
-<script src="js/ui-resumes.js?v=55"></script>
-<script src="js/ui-companies.js?v=55"></script>
-<script src="js/ui-links.js?v=55"></script>
-<script src="js/ui-favorites.js?v=55"></script>
-<script src="js/ui-support.js?v=55"></script>
-<script src="js/ui-compare.js?v=55"></script>
-<script src="js/ui-tasks.js?v=55"></script>
-<script src="js/ui-dashboard.js?v=55"></script>
-<script src="js/ui-letters.js?v=55"></script>
-<script src="js/ui-invite.js?v=55"></script>
-<script src="js/ui-profile.js?v=55"></script>
-<script src="js/ui-admin.js?v=55"></script>
-<script src="js/onboarding.js?v=55"></script>
-<script src="js/app.js?v=55"></script>
-<script src="js/auth-ui.js?v=55"></script>
+<script src="js/skills-data.js?v=56"></script>
+<script src="js/matching.js?v=56"></script>
+<script src="js/templates.js?v=56"></script>
+<script src="js/scam-check.js?v=56"></script>
+<script src="js/pdf-utils.js?v=56"></script>
+<script src="js/pdf-export.js?v=56"></script>
+<script src="js/ui-resumes.js?v=56"></script>
+<script src="js/ui-companies.js?v=56"></script>
+<script src="js/ui-links.js?v=56"></script>
+<script src="js/ui-favorites.js?v=56"></script>
+<script src="js/ui-support.js?v=56"></script>
+<script src="js/ui-compare.js?v=56"></script>
+<script src="js/ui-tasks.js?v=56"></script>
+<script src="js/ui-dashboard.js?v=56"></script>
+<script src="js/ui-letters.js?v=56"></script>
+<script src="js/ui-invite.js?v=56"></script>
+<script src="js/ui-profile.js?v=56"></script>
+<script src="js/ui-admin.js?v=56"></script>
+<script src="js/onboarding.js?v=56"></script>
+<script src="js/app.js?v=56"></script>
+<script src="js/auth-ui.js?v=56"></script>
 </body>
 </html>

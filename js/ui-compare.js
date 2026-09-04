@@ -385,6 +385,7 @@
           <button class="btn btn-secondary btn-sm" id="copy-letter-btn">Copy</button>
           <button class="btn btn-secondary btn-sm" id="download-letter-btn">Download .txt</button>
           <button class="btn btn-secondary btn-sm" id="download-letter-pdf-btn">Download PDF</button>
+          <button class="btn btn-secondary btn-sm" id="use-my-template-btn" title="Replaces this text with your saved template from the Cover Letters tab">Use my template</button>
         </div>
       </div>
       <div id="tab-email" style="display:none;">
@@ -414,6 +415,8 @@
     if (downloadResumeBtn) {
       downloadResumeBtn.addEventListener("click", () => downloadResumeForJob(data, downloadResumeBtn));
     }
+
+    document.getElementById("use-my-template-btn").addEventListener("click", () => useMyTemplate(data));
 
     document.querySelectorAll(".pill-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
@@ -531,6 +534,33 @@
       .writeText(text)
       .then(() => window.GapNinja.toast("Copied to clipboard"))
       .catch(() => window.GapNinja.toast("Couldn't copy — select and copy manually"));
+  }
+
+  // Swaps the cover letter textarea's contents for your saved template (Cover Letters tab),
+  // with [Company Name] and [Job Title] filled in from this comparison — every other bracket
+  // (name, contact info, the "something specific you found out about them" line, etc.) is left
+  // for you to fill in by hand, since guessing at those would mean fabricating content. Replaces
+  // whatever's in the box right now, including the auto-generated letter, so this only overwrites
+  // what's on screen — nothing saved yet is touched until you hit Save to Dashboard.
+  async function useMyTemplate(data) {
+    const btn = document.getElementById("use-my-template-btn");
+    btn.disabled = true;
+    try {
+      const profile = await S().profile.get();
+      const template =
+        profile && typeof profile.coverLetterTemplate === "string" && profile.coverLetterTemplate.trim()
+          ? profile.coverLetterTemplate
+          : window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
+      const filled = template
+        .split("[Company Name]").join(data.company || "[Company Name]")
+        .split("[Job Title]").join(data.role || "[Job Title]");
+      document.getElementById("cover-letter-text").value = filled;
+      window.GapNinja.toast("Template applied — fill in the remaining [brackets] before saving");
+    } catch (e) {
+      window.GapNinja.toast("Couldn't load your template: " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   function downloadText(filename, text) {

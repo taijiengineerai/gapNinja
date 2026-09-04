@@ -50,10 +50,57 @@
       closePreview();
       window.GapNinja.UiDashboard.openModal(id);
     });
+
+    document.getElementById("letter-template-save-btn").addEventListener("click", saveTemplate);
+    document.getElementById("letter-template-copy-btn").addEventListener("click", () => {
+      copyToClipboard(document.getElementById("letter-template-text").value);
+    });
+    document.getElementById("letter-template-download-btn").addEventListener("click", () => {
+      try {
+        window.GapNinja.PdfExport.downloadTextAsPdf(document.getElementById("letter-template-text").value, "cover-letter-template.pdf");
+      } catch (e) {
+        window.GapNinja.toast(e.message);
+      }
+    });
+    document.getElementById("letter-template-reset-btn").addEventListener("click", () => {
+      if (!confirm("Replace the current text with the example template? This won't save until you click Save Template.")) return;
+      document.getElementById("letter-template-text").value = window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
+    });
+  }
+
+  // Loads the saved template from the profile (falling back to the built-in example the very
+  // first time, before anything's been saved) and fills the textarea. Called once on entering
+  // the view — after that, the textarea is just left as whatever the user is editing.
+  async function renderTemplate() {
+    const textarea = document.getElementById("letter-template-text");
+    try {
+      const profile = await S().profile.get();
+      textarea.value =
+        profile && typeof profile.coverLetterTemplate === "string" && profile.coverLetterTemplate.trim()
+          ? profile.coverLetterTemplate
+          : window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
+    } catch (e) {
+      textarea.value = window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
+    }
+  }
+
+  async function saveTemplate() {
+    const btn = document.getElementById("letter-template-save-btn");
+    const text = document.getElementById("letter-template-text").value;
+    btn.disabled = true;
+    try {
+      await S().profile.save({ coverLetterTemplate: text });
+      window.GapNinja.toast("Template saved");
+    } catch (e) {
+      window.GapNinja.toast("Couldn't save: " + e.message);
+    } finally {
+      btn.disabled = false;
+    }
   }
 
   // Re-fetches from Firestore, then renders. Call this on entering the view.
   async function render() {
+    renderTemplate();
     const wrap = document.getElementById("letter-list-wrap");
     wrap.innerHTML = `<div class="empty-state">Loading…</div>`;
     try {
