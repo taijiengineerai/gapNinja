@@ -9,6 +9,10 @@
   let currentPage = 1; // 1-based
   let openAppId = null;
   let openAppMeta = { companyName: "", role: "", resumeId: "", resumeLabel: "" };
+  // Set by "Regenerate analysis" when it recomputes a fresher match score / matched / gap skill
+  // list than what's saved. Nothing in Firestore changes until Save changes is clicked (same
+  // rule as editing the cover letter or email text) -- this just rides along in that same save.
+  let pendingRegenerated = null;
 
   const STATUS_LABEL = {
     not_applied: "Not applied",
@@ -90,6 +94,7 @@
         btn.textContent = originalLabel;
       }
     });
+    document.getElementById("application-modal-regenerate-btn").addEventListener("click", regenerateAnalysis);
     document.getElementById("application-modal-download-letter-pdf").addEventListener("click", () => {
       try {
         window.GapNinja.PdfExport.downloadTextAsPdf(
@@ -245,7 +250,8 @@
     const a = await S().applications.get(id);
     if (!a) return;
     openAppId = id;
-    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role", resumeId: a.resumeId || "", resumeLabel: a.resumeLabel || "" };
+    openAppMeta = { companyName: a.companyName || "company", role: a.role || "role", resumeId: a.resumeId || "", resumeLabel: a.resumeLabel || "", createdAt: a.createdAt };
+    pendingRegenerated = null; // clear any leftover regenerated-but-unsaved state from a previously opened application
     document.getElementById("application-modal-title").textContent = `${a.role} — ${a.companyName}`;
     document.getElementById("application-modal-meta").textContent = `Resume: ${a.resumeLabel || "—"} · Match score: ${a.matchScore}% · Saved ${new Date(a.createdAt).toLocaleDateString()}`;
     document.getElementById("application-modal-id").value = a.id;
@@ -281,6 +287,88 @@
   function closeModal() {
     document.getElementById("application-modal").classList.remove("open");
     openAppId = null;
+    pendingRegenerated = null;
+  }
+
+  // Re-runs Analyze Fit against the saved job description and resume, using whatever the
+  // matching/cover-letter logic does TODAY rather than what it did back when this was first
+  // saved — so a bug fix (e.g. an irrelevant "bonus skill" no longer getting suggested) shows up
+  // in an old comparison without redoing it from scratch on Compare & Analyze. Updates the match
+  // score, matched/gap skill chips, cover letter, and follow-up email right here in the modal;
+  // none of it touches Firestore until Save changes is clicked, same as hand-editing any of those
+  // fields — this only stages fresher values in place of what's currently shown.
+  async function regenerateAnalysis() {
+    const btn = document.getElementById("application-modal-regenerate-btn");
+    const jdText = document.getElementById("application-modal-jd").value;
+    if (!jdText || jdText.startsWith("(No job description")) {
+      window.GapNinja.toast("No job description was saved for this comparison — nothing to re-analyze");
+      return;
+    }
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Regenerating…";
+    try {
+      let resume = await S().resumes.get(openAppMeta.resumeId);
+      // Same fallback as the resume-download button: the original resume may have been deleted
+      // and re-uploaded since, which gives it a new ID the saved resumeId no longer resolves to.
+      if (!resume && openAppMeta.resumeLabel) {
+        const all = await S().resumes.list();
+        resume = all.find((r) => r.label === openAppMeta.resumeLabel) || null;
+      }
+      if (!resume) {
+        window.GapNinja.toast("Couldn't find the resume this was compared against — it may have been deleted");
+        return;
+      }
+
+      const profile = await S().profile.get();
+      const analysis = window.GapNinja.Matching.analyze(resume.rawText, jdText);
+      const coverLetter = window.GapNinja.Templates.generateCoverLetter({
+        profile,
+        role: openAppMeta.role,
+        company: openAppMeta.companyName,
+        analysis,
+      });
+      const appliedDateVal = document.getElementById("application-modal-applied-date").value;
+      const appliedDate = appliedDateVal ? new Date(appliedDateVal).toISOString() : new Date().toISOString();
+      const email = window.GapNinja.Templates.generateFollowUpEmail({
+        profile,
+        role: openAppMeta.role,
+        company: openAppMeta.companyName,
+        appliedDate,
+        analysis,
+      });
+
+      document.getElementById("application-modal-letter").value = coverLetter;
+      document.getElementById("application-modal-email-subject").value = email.subject;
+      document.getElementById("application-modal-email-body").value = email.body;
+      document.getElementById("application-modal-matched").innerHTML =
+        analysis.matched.map((m) => `<span class="badge badge-matched">✓ ${escapeHtml(m.skill.name)}</span>`).join("") || `<span class="muted">None</span>`;
+      const gapWrap = document.getElementById("application-modal-gap");
+      gapWrap.innerHTML =
+        analysis.gap
+          .map((g) => `<button type="button" class="badge badge-gap badge-clickable" data-add-skill="${escapeHtml(g.skill.name)}" title="Add to your Skills & knowledge">+ ${escapeHtml(g.skill.name)}</button>`)
+          .join("") || `<span class="muted">None</span>`;
+      window.GapNinja.wireGapSkillChips(gapWrap);
+
+      document.getElementById("application-modal-meta").textContent =
+        `Resume: ${openAppMeta.resumeLabel || "—"} · Match score: ${analysis.score}% (regenerated — not saved yet) · Saved ${
+          openAppMeta.createdAt ? new Date(openAppMeta.createdAt).toLocaleDateString() : "—"
+        }`;
+
+      pendingRegenerated = {
+        matchScore: analysis.score,
+        matchedSkills: analysis.matched.map((m) => m.skill.name),
+        gapSkills: analysis.gap.map((g) => g.skill.name),
+      };
+
+      window.GapNinja.toast("Regenerated — review the cover letter and email, then Save changes to keep them");
+    } catch (e) {
+      console.error(e);
+      window.GapNinja.toast("Couldn't regenerate: " + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
   }
 
   // Today's date as "YYYY-MM-DD" in the browser's LOCAL timezone, for a <input type="date">
@@ -305,6 +393,9 @@
         coverLetter: document.getElementById("application-modal-letter").value,
         emailSubject: document.getElementById("application-modal-email-subject").value,
         emailBody: document.getElementById("application-modal-email-body").value,
+        // Only present after "Regenerate analysis" has run this session — carries the refreshed
+        // match score and matched/gap skill lists into the same save as everything else.
+        ...(pendingRegenerated || {}),
       });
       window.GapNinja.toast("Saved");
       closeModal();
