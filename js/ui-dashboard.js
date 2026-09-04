@@ -100,6 +100,26 @@
         window.GapNinja.toast(e.message);
       }
     });
+    document.getElementById("application-modal-use-template").addEventListener("click", async () => {
+      const btn = document.getElementById("application-modal-use-template");
+      btn.disabled = true;
+      try {
+        const profile = await S().profile.get();
+        const template =
+          profile && typeof profile.coverLetterTemplate === "string" && profile.coverLetterTemplate.trim()
+            ? profile.coverLetterTemplate
+            : window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
+        const filled = template
+          .split("[Company Name]").join(openAppMeta.companyName || "[Company Name]")
+          .split("[Job Title]").join(openAppMeta.role || "[Job Title]");
+        document.getElementById("application-modal-letter").value = filled;
+        window.GapNinja.toast("Template applied — fill in the remaining [brackets], then Save changes");
+      } catch (e) {
+        window.GapNinja.toast("Couldn't load your template: " + e.message);
+      } finally {
+        btn.disabled = false;
+      }
+    });
     document.getElementById("application-modal-copy-email").addEventListener("click", () => {
       const s = document.getElementById("application-modal-email-subject").value;
       const b = document.getElementById("application-modal-email-body").value;
