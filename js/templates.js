@@ -179,15 +179,18 @@
     return body.trim();
   }
 
-  // A starting-point cover letter template for the "Your reusable template" card on the Cover
-  // Letters tab. Unlike generateCoverLetter above (which is generated fresh from a specific
-  // analysis every time), this is a fixed block of text meant to be saved, hand-edited into your
-  // own voice, and reused across applications — with [Company Name] and [Job Title] as the only
-  // two placeholders "Use my template" (in Compare & Analyze) knows how to fill in automatically.
-  // Deliberately plain, short-sentence writing with no em dashes, so it doesn't read as
-  // AI-generated the way a heavily polished template can.
-  const DEFAULT_COVER_LETTER_TEMPLATE = `[Your Name]
-[Your City, State] | [Your Phone] | [Your Email]
+  // A cover letter template for the "Your reusable template" card on the Cover Letters tab,
+  // written for this account (Billy Huynh) from his actual resume and career background rather
+  // than generic filler. Unlike generateCoverLetter above (which is generated fresh from a
+  // specific analysis every time), this is a fixed block of text meant to be saved, hand-edited
+  // further as needed, and reused across applications — with [Company Name] and [Job Title] as
+  // the only two placeholders "Use my template" (in Compare & Analyze) knows how to fill in
+  // automatically; the rest (hiring manager name, the "something you found out about them" line)
+  // are left as brackets since guessing at those would mean fabricating content. Deliberately
+  // plain, short-sentence writing with no em dashes, so it doesn't read as AI-generated the way a
+  // heavily polished template can.
+  const DEFAULT_COVER_LETTER_TEMPLATE = `Billy Huynh
+Woodland Park, CO | 314-422-6711 | Billy.huynh@gmail.com
 
 [Date]
 
@@ -198,16 +201,16 @@ Dear [Hiring Manager Name / Hiring Team],
 
 I'm applying for the [Job Title] role at [Company Name]. [One sentence about something specific you found out about them, a product, initiative, or value that caught your attention.]
 
-I've spent [X years] working in [your field], so I can step into this role and be useful right away. But the technical side isn't the only reason I'm writing. How a team works together matters just as much to me.
+I've spent 17+ years designing, testing, and troubleshooting network infrastructure across carrier, enterprise, and U.S. defense environments, so I can step into this role and be useful right away. But the technical side isn't the only reason I'm writing. How a team works together matters just as much to me.
 
-[One or two sentences with a real example from your work: what you did, and what it showed about how you work with other people. Mentoring, working across teams, and getting through a hard problem with other people all count. Be specific rather than saying "I'm a team player."]
+In my current role as a Wireless Network Engineer III, I lead regression and feature testing for CPE hardware from vendors like Sagemcom, Sercomm, Askey, and CommScope. I test access points through conductive and over the air testing before they ever reach a customer. I'm also the vendor lead on trouble tickets, and I mentor newer engineers on building out test suites. That mentoring work has shown me something simple: teams do their best work when people actually share what they know instead of sitting on it. Earlier in my career, coordinating with commercial vendors and DISA stakeholders across every military branch on the Ground Based Midcourse Defense program taught me the same thing. Good working relationships solve problems faster than any one person's expertise can on its own.
 
 That's what I look for in a company too. A team that treats mentoring and knowledge sharing as part of the job, not something extra. A place where people can raise a problem early instead of sitting on it until it's bigger. [Optional: one sentence connecting this to something specific you learned about how their team works.]
 
 I'd like to talk about how my background fits what your team is building. Thanks for taking the time to read this.
 
 Sincerely,
-[Your Name]`;
+Billy Huynh`;
 
   global.GapNinja = global.GapNinja || {};
   global.GapNinja.Templates = {
