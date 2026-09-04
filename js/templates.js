@@ -32,24 +32,25 @@
   //
   // Already-mentioned matched skills are excluded first (resumeSkills = matched ∪ bonus, so this
   // reduces to the resume's skills the JD doesn't ask about) so this sentence never repeats the
-  // earlier "this posting calls for X" line. What's left is ranked with same-category-as-the-JD
-  // skills first (highest relevance), but relatedness only affects ORDER, not whether a skill is
-  // included — if the resume has fewer than n extra skills, whatever it has is used, in order of
-  // how often it appears in that resume.
+  // earlier "this posting calls for X" line. What's left is then STRICTLY filtered to skills in a
+  // category the job description actually touches on (matched or gap) — a candidate's old
+  // marketing gig showing up as "SEO" on a network engineering resume shouldn't get offered as a
+  // value-add for a network engineering role just because it's technically present in the resume
+  // text. If nothing in the resume qualifies, this returns an empty list and generateCoverLetter
+  // skips the sentence entirely below rather than forcing in something irrelevant. Candidates keep
+  // resumeSkills' own order (by how often each appears in the resume) since everything left after
+  // filtering is already relevant.
   function topResumeSkillNames(analysis, n) {
     const matchedLower = new Set(analysis.matched.map((s) => s.skill.name.toLowerCase()));
     const jdCategories = new Set(analysis.matched.concat(analysis.gap).map((s) => s.skill.category));
 
-    const candidates = (analysis.resumeSkills || []).filter((s) => !matchedLower.has(s.skill.name.toLowerCase()));
-    const ranked = candidates.slice().sort((a, b) => {
-      const aRelated = jdCategories.has(a.skill.category) ? 1 : 0;
-      const bRelated = jdCategories.has(b.skill.category) ? 1 : 0;
-      return bRelated - aRelated; // stable — ties keep the resume's own count-desc order
-    });
+    const candidates = (analysis.resumeSkills || []).filter(
+      (s) => !matchedLower.has(s.skill.name.toLowerCase()) && jdCategories.has(s.skill.category)
+    );
 
     const seen = new Set();
     const names = [];
-    for (const s of ranked) {
+    for (const s of candidates) {
       const key = s.skill.name.toLowerCase();
       if (seen.has(key)) continue;
       seen.add(key);
