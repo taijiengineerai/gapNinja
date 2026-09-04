@@ -14,6 +14,12 @@
     document.getElementById("compare-jd").addEventListener("blur", autoFillCompensation);
     document.getElementById("compare-url").addEventListener("blur", maybeAutoFetchOnBlur);
     document.getElementById("compare-scamcheck-btn").addEventListener("click", runScamCheck);
+    document.getElementById("compare-choose-company-btn").addEventListener("click", openCompanyPicker);
+    document.getElementById("company-picker-close-btn").addEventListener("click", closeCompanyPicker);
+    document.getElementById("company-picker-modal").addEventListener("click", (e) => {
+      if (e.target.id === "company-picker-modal") closeCompanyPicker();
+    });
+    document.getElementById("company-picker-search").addEventListener("input", renderCompanyPickerList);
 
     // If a result is already showing and the user edits any input it was built from, the old
     // result (and its "Save to Dashboard" button, wired to the old data) is no longer valid for
@@ -561,6 +567,62 @@
     } finally {
       btn.disabled = false;
     }
+  }
+
+  // ---- Saved-company picker ----
+  // Lets you fill the Company name field by picking from your tracked companies (Companies tab)
+  // instead of typing it fresh every time — handy right before "Use my template", since that
+  // button just reads whatever's currently in this field.
+  let cachedPickerCompanies = null;
+
+  async function openCompanyPicker() {
+    document.getElementById("company-picker-search").value = "";
+    document.getElementById("company-picker-list").innerHTML = `<div class="empty-state">Loading…</div>`;
+    document.getElementById("company-picker-modal").classList.add("open");
+    try {
+      cachedPickerCompanies = await S().companies.list();
+    } catch (e) {
+      document.getElementById("company-picker-list").innerHTML = `<div class="empty-state">Couldn't load companies: ${escapeHtml(e.message)}</div>`;
+      return;
+    }
+    renderCompanyPickerList();
+  }
+
+  function renderCompanyPickerList() {
+    const wrap = document.getElementById("company-picker-list");
+    if (!cachedPickerCompanies) return;
+    if (cachedPickerCompanies.length === 0) {
+      wrap.innerHTML = `<div class="empty-state">No saved companies yet — they're created automatically once you save a comparison, or add one on the Companies tab.</div>`;
+      return;
+    }
+    const search = (document.getElementById("company-picker-search").value || "").trim().toLowerCase();
+    const entries = cachedPickerCompanies
+      .filter((c) => !search || (c.name || "").toLowerCase().includes(search))
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }));
+
+    if (entries.length === 0) {
+      wrap.innerHTML = `<div class="empty-state">No companies matching "${escapeHtml(search)}".</div>`;
+      return;
+    }
+
+    wrap.innerHTML = entries
+      .map(
+        (c) =>
+          `<button type="button" class="btn btn-secondary btn-sm" data-pick-company="${escapeHtml(c.name)}" style="width:100%; justify-content:flex-start; margin-bottom:6px;">${escapeHtml(c.name)}</button>`
+      )
+      .join("");
+    wrap.querySelectorAll("[data-pick-company]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const companyInput = document.getElementById("compare-company");
+        companyInput.value = btn.getAttribute("data-pick-company");
+        companyInput.dispatchEvent(new Event("input", { bubbles: true })); // clears stale results/scam-check, same as typing it
+        closeCompanyPicker();
+      });
+    });
+  }
+
+  function closeCompanyPicker() {
+    document.getElementById("company-picker-modal").classList.remove("open");
   }
 
   function downloadText(filename, text) {
