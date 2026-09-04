@@ -277,6 +277,7 @@ a { color: var(--neon); }
    or notes never forces its shorter neighbors to stretch and leave empty space (which a
    multi-column grid does by default, since a grid row's height matches its tallest card). */
 .company-list { display: flex; flex-direction: column; gap: 16px; }
+.letter-list { display: flex; flex-direction: column; gap: 16px; }
 
 /* ---- Mobile layout (phones/tablets) ---- */
 @media (max-width: 860px) {

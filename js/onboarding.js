@@ -22,7 +22,7 @@
   const STEPS = [
     {
       title: "Welcome to gapNinja 👋",
-      body: "A quick tour of the main features — nine steps, skip anytime with the link below.",
+      body: "A quick tour of the main features — ten steps, skip anytime with the link below.",
     },
     {
       selector: '[data-view="dashboard"]',
@@ -53,6 +53,11 @@
       selector: '[data-view="links"]',
       title: "My Links",
       body: "Save your LinkedIn, portfolio, GitHub, or any other link you paste often — as many as you want, each one copyable with a click.",
+    },
+    {
+      selector: '[data-view="letters"]',
+      title: "Cover Letters",
+      body: "Every cover letter gapNinja has drafted for a saved application, in one browsable library — view the full text, copy it, or download it to reuse as a starting point.",
     },
     {
       selector: '[data-view="favorites"]',
