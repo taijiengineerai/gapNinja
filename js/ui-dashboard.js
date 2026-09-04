@@ -105,15 +105,25 @@
       btn.disabled = true;
       try {
         const profile = await S().profile.get();
+        const T = window.GapNinja.Templates;
         const template =
           profile && typeof profile.coverLetterTemplate === "string" && profile.coverLetterTemplate.trim()
             ? profile.coverLetterTemplate
-            : window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
-        const filled = template
+            : T.DEFAULT_COVER_LETTER_TEMPLATE;
+        const jdText = document.getElementById("application-modal-jd").value;
+        const highlight = T.extractCompanyHighlight(jdText, openAppMeta.companyName);
+        let filled = template
           .split("[Company Name]").join(openAppMeta.companyName || "[Company Name]")
           .split("[Job Title]").join(openAppMeta.role || "[Job Title]");
+        if (highlight) {
+          filled = filled.split(T.COMPANY_HIGHLIGHT_PLACEHOLDER).join(highlight);
+        }
         document.getElementById("application-modal-letter").value = filled;
-        window.GapNinja.toast("Template applied — fill in the remaining [brackets], then Save changes");
+        window.GapNinja.toast(
+          highlight
+            ? "Template applied — double-check the pulled-in sentence, then Save changes"
+            : "Template applied — fill in the remaining [brackets], then Save changes"
+        );
       } catch (e) {
         window.GapNinja.toast("Couldn't load your template: " + e.message);
       } finally {

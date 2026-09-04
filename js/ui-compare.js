@@ -543,25 +543,34 @@
   }
 
   // Swaps the cover letter textarea's contents for your saved template (Cover Letters tab),
-  // with [Company Name] and [Job Title] filled in from this comparison — every other bracket
-  // (name, contact info, the "something specific you found out about them" line, etc.) is left
-  // for you to fill in by hand, since guessing at those would mean fabricating content. Replaces
-  // whatever's in the box right now, including the auto-generated letter, so this only overwrites
-  // what's on screen — nothing saved yet is touched until you hit Save to Dashboard.
+  // with [Company Name] and [Job Title] filled in from this comparison, and a best-effort attempt
+  // at the "something specific you found out about them" sentence pulled straight from this job's
+  // description (see Templates.extractCompanyHighlight) — left as the original bracket if nothing
+  // in the JD text scores confidently enough to guess at. Every other bracket (name, contact info,
+  // etc.) is left for you to fill in by hand, since guessing at those would mean fabricating
+  // content. Replaces whatever's in the box right now, including the auto-generated letter, so
+  // this only overwrites what's on screen — nothing saved yet is touched until Save to Dashboard.
   async function useMyTemplate(data) {
     const btn = document.getElementById("use-my-template-btn");
     btn.disabled = true;
     try {
       const profile = await S().profile.get();
+      const T = window.GapNinja.Templates;
       const template =
         profile && typeof profile.coverLetterTemplate === "string" && profile.coverLetterTemplate.trim()
           ? profile.coverLetterTemplate
-          : window.GapNinja.Templates.DEFAULT_COVER_LETTER_TEMPLATE;
-      const filled = template
+          : T.DEFAULT_COVER_LETTER_TEMPLATE;
+      const highlight = T.extractCompanyHighlight(data.jdText, data.company);
+      let filled = template
         .split("[Company Name]").join(data.company || "[Company Name]")
         .split("[Job Title]").join(data.role || "[Job Title]");
+      if (highlight) {
+        filled = filled.split(T.COMPANY_HIGHLIGHT_PLACEHOLDER).join(highlight);
+      }
       document.getElementById("cover-letter-text").value = filled;
-      window.GapNinja.toast("Template applied — fill in the remaining [brackets] before saving");
+      window.GapNinja.toast(
+        highlight ? "Template applied — double-check the pulled-in sentence, then fill in any remaining [brackets]" : "Template applied — fill in the remaining [brackets] before saving"
+      );
     } catch (e) {
       window.GapNinja.toast("Couldn't load your template: " + e.message);
     } finally {

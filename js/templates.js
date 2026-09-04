@@ -212,11 +212,94 @@ I'd like to talk about how my background fits what your team is building. Thanks
 Sincerely,
 Billy Huynh`;
 
+  // The exact bracket text in DEFAULT_COVER_LETTER_TEMPLATE (and, if the user kept the wording,
+  // in their saved template too) that stands in for a company-specific detail. Kept as a shared
+  // constant so "Use my template" can find-and-replace it without hardcoding the string twice.
+  const COMPANY_HIGHLIGHT_PLACEHOLDER =
+    "[One sentence about something specific you found out about them, a product, initiative, or value that caught your attention.]";
+
+  // Best-effort: pulls one sentence straight out of the job description that reads like it's
+  // ABOUT THE COMPANY (mission, product, values) rather than about the role's duties or
+  // requirements, for the COMPANY_HIGHLIGHT_PLACEHOLDER slot in the template. Job postings
+  // usually open with a paragraph like this before listing responsibilities/requirements, so this
+  // looks in that opening section first, then scores candidate sentences by whether they mention
+  // the company name or company-description language, and skips anything that reads like a
+  // requirement ("years of experience", "bachelor's degree", etc.) or a bullet point. Returns the
+  // sentence verbatim (nothing is paraphrased or invented) so it can't misrepresent the posting,
+  // or null if nothing in the JD text scores confidently enough to guess at over leaving the
+  // bracket for the user to fill in by hand.
+  function extractCompanyHighlight(jdText, companyName) {
+    const text = (jdText || "").replace(/\r/g, "");
+    if (!text.trim()) return null;
+
+    // Cut the text off at the first line that reads like a "Responsibilities" / "Requirements" /
+    // "Qualifications" section header, so scoring only looks at the company-intro portion above
+    // it (if no such header is found, fall back to just the first ~800 characters).
+    const sectionHeaderRe = /^\s{0,3}(responsibilities|requirements|qualifications|what you.?ll do|what you bring|the role|about the role|duties|who you are|skills( & | and )experience|minimum qualifications|preferred qualifications)\b/im;
+    const headerMatch = text.match(sectionHeaderRe);
+    const introText = headerMatch ? text.slice(0, headerMatch.index) : text.slice(0, 800);
+
+    // A short line with no sentence-ending punctuation reads as a heading or job title ("About
+    // Us", "Solutions Engineer - WiFi") rather than prose. Dropping these before joining lines
+    // into sentences matters because plain-text job postings often put a heading directly above
+    // its paragraph with no blank line between them -- without this, "About Us" would glue onto
+    // the front of the very sentence being extracted.
+    function looksLikeHeading(line) {
+      return line.length > 0 && line.length < 45 && !/[.!?]$/.test(line);
+    }
+
+    // Split into rough sentences, paragraph by paragraph (blank-line-separated blocks) so a
+    // heading or job title in one paragraph never gets glued onto a sentence in the next. This is
+    // a simple heuristic split (period/!/? followed by whitespace), not a real sentence
+    // tokenizer, so it can slice awkwardly on abbreviations -- that's fine here since the
+    // fallback (leaving the bracket alone) is safe.
+    const rawSentences = [];
+    introText.split(/\n\s*\n/).forEach((para) => {
+      const lines = para
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .filter((l) => !looksLikeHeading(l));
+      if (!lines.length) return;
+      lines
+        .join(" ")
+        .split(/(?<=[.!?])\s+(?=[A-Z(])/)
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((s) => rawSentences.push(s));
+    });
+
+    const nameLower = (companyName || "").trim().toLowerCase();
+    const requirementRe = /\b(years? of experience|bachelor'?s?|master'?s?|degree|required|must have|preferred qualifications|minimum qualifications|proficien)\b/i;
+    const companyLanguageRe = /\b(mission|vision|believe|values?|culture|founded|passionate|committed|empower|building?|helps?|helping|transform|innovat|purpose|journey|dedicated to|our team|we're|we are)\b/i;
+
+    let best = null;
+    let bestScore = 0;
+    rawSentences.forEach((sentence) => {
+      if (sentence.length < 30 || sentence.length > 240) return; // too short to say anything, or too long to read as one clean sentence
+      if (/^[-*•]/.test(sentence)) return; // bullet point, not prose
+      if (requirementRe.test(sentence)) return; // reads like a job requirement, not a company detail
+
+      let score = 0;
+      if (nameLower && sentence.toLowerCase().includes(nameLower)) score += 3;
+      if (companyLanguageRe.test(sentence)) score += 2;
+      if (score > bestScore) {
+        bestScore = score;
+        best = sentence;
+      }
+    });
+
+    if (!best || bestScore < 2) return null; // nothing confident enough to use over leaving it blank
+    return /[.!?]$/.test(best) ? best : best + ".";
+  }
+
   global.GapNinja = global.GapNinja || {};
   global.GapNinja.Templates = {
     generateCoverLetter,
     generateFollowUpEmail,
     generateSkillsSummary,
     DEFAULT_COVER_LETTER_TEMPLATE,
+    COMPANY_HIGHLIGHT_PLACEHOLDER,
+    extractCompanyHighlight,
   };
 })(window);
